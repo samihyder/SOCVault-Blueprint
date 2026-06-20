@@ -1,0 +1,43 @@
+meta {
+  name: Execute L1 Recon Scan
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/scan/execute
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "layer": "RECON",
+    "target": "{{test_domain}}",
+    "consent": true
+  }
+}
+
+docs {
+  FR-019, FR-026, FR-028. MVP: L1 only.
+  Returns 202 with scan_id. Second scan same month → 429 on Freemium.
+}
+
+tests {
+  test("status is 202", function() {
+    expect(res.status).to.equal(202);
+  });
+  test("returns scan_id", function() {
+    expect(res.body.scan_id).to.be.a("string");
+  });
+}
+
+script:post-response {
+  if (res.body && res.body.scan_id) {
+    bru.setEnvVar("scan_id", res.body.scan_id);
+  }
+}

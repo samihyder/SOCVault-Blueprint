@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — API Explorer & Pass & Keys</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.main { margin-left:210px; margin-top:52px; padding:18px 20px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub { font-size:12px; color:#888; margin-bottom:14px; }
+.breadcrumb { font-size:11px; color:#888; margin-bottom:12px; }
+.breadcrumb a { color:#4CC844; font-weight:600; }
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-secondary { background:#1B3D35; color:#fff; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-danger { background:#DC2626; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.form-input, .form-select { padding:6px 10px; border:1.5px solid #d1d5db; border-radius:6px; font-size:12px; }
+.form-label { font-size:10px; font-weight:600; color:#1B3D35; margin-bottom:3px; display:block; }
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.alert-strip.info { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+.alert-strip.critical { background:#FEF2F2; border-left:4px solid #DC2626; color:#991B1B; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px; padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+.layout-3 { display:grid; grid-template-columns:240px 1fr 280px; gap:12px; align-items:start; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:14px; margin-bottom:12px; }
+.card-title { font-size:12px; font-weight:700; color:#1B3D35; margin-bottom:10px;
+  padding-bottom:6px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:6px; }
+.card-subtitle { font-size:9px; color:#888; margin-left:auto; font-weight:500; }
+.api-folder { font-size:10px; font-weight:700; color:#4CC844; text-transform:uppercase; letter-spacing:.5px; margin:10px 0 4px; }
+.api-item { display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:5px; font-size:11px; cursor:pointer; margin-bottom:2px; }
+.api-item:hover, .api-item.active { background:#E8F0E8; }
+.method { font-size:9px; font-weight:800; padding:2px 5px; border-radius:3px; min-width:38px; text-align:center; }
+.method.get { background:#DBEAFE; color:#1E40AF; }
+.method.post { background:#D1FAE5; color:#065F46; }
+.method.patch { background:#FEF3C7; color:#92400E; }
+.method.delete { background:#FECACA; color:#991B1B; }
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:10px; }
+.tab { padding:6px 12px; font-size:11px; font-weight:600; color:#888; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+.code-block { background:#1e2d2a; border-radius:6px; padding:10px 12px;
+  font-family:'Courier New',monospace; font-size:10px; color:#b8d4c8; overflow-x:auto; margin:8px 0; white-space:pre; line-height:1.5; }
+.code-block .key { color:#4CC844; }
+.code-block .str { color:#FDE68A; }
+.code-block .num { color:#93C5FD; }
+.result-box { border-radius:6px; padding:10px 12px; margin-top:10px; font-size:11px; }
+.result-box.success { background:#F0FDF4; border:1.5px solid #22C55E; }
+.result-box.failure { background:#FEF2F2; border:1.5px solid #DC2626; }
+.result-header { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:6px; }
+.result-meta { font-size:10px; color:#666; margin-bottom:8px; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.passed { background:#D1FAE5; color:#065F46; }
+.sev.critical { background:#FECACA; color:#991B1B; }
+.vault-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f0f0f0; font-size:11px; }
+.vault-key { font-family:'Courier New',monospace; font-weight:600; color:#1B3D35; flex:1; }
+.vault-val { font-family:'Courier New',monospace; color:#888; flex:1.2; letter-spacing:1px; }
+.vault-val.revealed { color:#166534; letter-spacing:0; word-break:break-all; }
+.vault-actions { display:flex; gap:4px; }
+.badge-auto { font-size:8px; background:#DBEAFE; color:#1E40AF; padding:1px 5px; border-radius:8px; font-weight:700; }
+.badge-locked { font-size:8px; background:#FEF3C7; color:#92400E; padding:1px 5px; border-radius:8px; font-weight:700; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:200; }
+.modal { background:#fff; border-radius:10px; padding:22px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.modal-title { font-size:14px; font-weight:800; color:#1B3D35; margin-bottom:6px; }
+.modal-sub { font-size:11px; color:#888; margin-bottom:14px; }
+.pin-dots { display:flex; gap:10px; justify-content:center; margin:16px 0; }
+.pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid #1B3D35; }
+.pin-dot.filled { background:#4CC844; border-color:#4CC844; }
+.toggle-row { display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-bottom:10px; }
+.toggle { width:36px; height:20px; background:#4CC844; border-radius:10px; position:relative; }
+.toggle::after { content:''; position:absolute; right:3px; top:3px; width:14px; height:14px; background:#fff; border-radius:50%; }
+.history-item { padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:10px; }
+.history-item .ok { color:#166534; font-weight:700; }
+.history-item .fail { color:#991B1B; font-weight:700; }
+.panel-hidden { display:none; }
+.feed-table { width:100%; border-collapse:collapse; font-size:11px; }
+.feed-table th { text-align:left; padding:6px 8px; background:#E8F0E8; color:#1B3D35; font-size:10px; }
+.feed-table td { padding:7px 8px; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+.st { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+.st-ok { background:#22C55E; }
+.st-warn { background:#F59E0B; }
+.st-off { background:#D1D5DB; }
+.layer-tag { font-size:9px; background:#EFF6FF; color:#1E40AF; padding:1px 5px; border-radius:4px; margin:1px; display:inline-block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">INTERNAL · SUPERADMIN</span>
+    <div class="avatar">SA</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="25-admin-dev-tracker.html"><span class="ico">📊</span>Development Tracker</a>
+  <a href="24-admin-api-explorer.html" class="active"><span class="ico">🧪</span>API Explorer</a>
+  <a href="22-socvault-team-admin.html"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html"><span class="ico">📈</span>Metrics Observatory</a>
+  <a href="00-index.html"><span class="ico">📋</span>All Wireframes</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:8px">
+  <span class="story-ref">US-186</span><span class="story-ref">US-187</span><span class="story-ref">US-188</span>
+  <span class="story-ref">US-189</span><span class="story-ref">US-190</span><span class="story-ref">US-191</span>
+  <span class="story-ref">US-192</span><span class="story-ref">US-193</span>
+  <span class="story-ref">US-201</span><span class="story-ref">US-202</span><span class="story-ref">US-203</span>
+  <span class="story-ref">US-204</span><span class="story-ref">US-205</span><span class="story-ref">US-206</span>
+  <span class="story-ref">US-207</span><span class="story-ref">US-208</span>
+</div>
+
+<div class="breadcrumb">
+  <a href="19-admin.html">Admin Console</a> <span>›</span> API Explorer & Pass & Keys
+</div>
+
+<div class="page-title">API Explorer & Pass & Keys</div>
+<div class="page-sub">Test platform APIs · Encrypted secrets vault · Threat intel feed registry · FR-194–207 · FR-216–229 · Catalogue in <code>docs/20_FREE_EXTERNAL_APIS.md</code></div>
+
+<div class="tabs" style="margin-bottom:14px">
+  <div class="tab active">🧪 API Explorer</div>
+  <div class="tab">🛡️ Threat Intel Feeds</div>
+</div>
+
+<div id="panel-explorer">
+
+<div class="alert-strip info">
+  <span>🔐</span>
+  <span>All vault values are masked. Reveal / copy requires Super Admin PIN or password (step-up). Unlock session expires after 5 min idle.</span>
+</div>
+
+<div class="toolbar">
+  <label class="form-label" style="margin:0">Environment</label>
+  <select class="form-select" style="width:120px">
+    <option>mock</option>
+    <option selected>staging</option>
+    <option>production</option>
+  </select>
+  <input class="form-input" style="width:220px" value="https://api-staging.socvault.io/api/v1" readonly>
+  <div class="spacer"></div>
+  <button class="btn btn-outline btn-sm">↻ Sync OpenAPI</button>
+  <button class="btn btn-outline btn-sm">Import Bruno env</button>
+  <button class="btn btn-outline btn-sm">Export to Bruno</button>
+</div>
+
+<div class="layout-3">
+
+  <!-- LEFT: API catalogue -->
+  <div class="card" style="margin:0">
+    <div class="card-title">API Catalogue <span class="card-subtitle">FR-194</span></div>
+    <input class="form-input" placeholder="Filter endpoints…" style="margin-bottom:8px;font-size:11px">
+
+    <div class="api-folder">00 — Health</div>
+    <div class="api-item"><span class="method get">GET</span> /health</div>
+
+    <div class="api-folder">01 — Auth</div>
+    <div class="api-item"><span class="method post">POST</span> /auth/signup</div>
+    <div class="api-item active"><span class="method post">POST</span> /auth/verify-otp</div>
+    <div class="api-item"><span class="method post">POST</span> /auth/refresh</div>
+    <div class="api-item"><span class="method get">GET</span> /auth/me</div>
+
+    <div class="api-folder">02 — Scan</div>
+    <div class="api-item"><span class="method post">POST</span> /scan/execute</div>
+    <div class="api-item"><span class="method get">GET</span> /scan/{scan_id}</div>
+    <div class="api-item"><span class="method get">GET</span> /scan/history</div>
+
+    <div class="api-folder">03 — Dashboard</div>
+    <div class="api-item"><span class="method get">GET</span> /dashboard/summary</div>
+
+    <div class="api-folder">04 — Admin</div>
+    <div class="api-item"><span class="method get">GET</span> /admin/telemetry</div>
+    <div class="api-item"><span class="method get">GET</span> /admin/explorer/catalog</div>
+    <div class="api-item"><span class="method post">POST</span> /admin/explorer/test</div>
+    <div class="api-item"><span class="method get">GET</span> /admin/ti/feeds</div>
+    <div class="api-item"><span class="method post">POST</span> /admin/ti/feeds/{id}/test</div>
+  </div>
+
+  <!-- CENTER: Request + Test + try/catch results -->
+  <div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Request Builder <span class="card-subtitle">US-187, FR-195</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="method post">POST</span>
+        <code style="font-size:12px;font-weight:600">/auth/verify-otp</code>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Body</div>
+        <div class="tab">Headers</div>
+        <div class="tab">Auth</div>
+        <div class="tab">Variables</div>
+      </div>
+
+      <div class="wf-note">Use <code>{{variable}}</code> syntax — values resolved from Pass & Keys vault for active environment.</div>
+
+      <div class="code-block">{
+  <span class="key">"email"</span>: <span class="str">"{{email}}"</span>,
+  <span class="key">"otp"</span>: <span class="str">"123456"</span>
+}</div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary">▶ Send Test Request</button>
+        <button class="btn btn-outline btn-sm">Save preset</button>
+        <label style="font-size:10px;display:flex;align-items:center;gap:4px;margin-left:auto">
+          <input type="checkbox" checked> Auto-save tokens from response
+        </label>
+      </div>
+    </div>
+
+    <!-- SUCCESS result -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Test Result — Success <span class="card-subtitle">US-188, FR-197</span></div>
+      <div class="result-box success">
+        <div class="result-header">
+          <span class="sev passed">✓ SUCCESS</span>
+          <span>HTTP 200 OK</span>
+          <span style="margin-left:auto;font-size:10px;color:#666">142 ms</span>
+        </div>
+        <div class="result-meta">try/catch: completed without exception · correlation_id: req_8f2a1c</div>
+        <div class="code-block">{
+  <span class="key">"access_token"</span>: <span class="str">"eyJhbG…"</span>,
+  <span class="key">"refresh_token"</span>: <span class="str">"eyJhbG…"</span>,
+  <span class="key">"tenant_id"</span>: <span class="str">"T-0A3F1B2C"</span>,
+  <span class="key">"expires_in"</span>: <span class="num">3600</span>
+}</div>
+        <div class="alert-strip success" style="margin:8px 0 0;padding:8px 10px;font-size:10px">
+          <span>💾</span>
+          <span><strong>Auto-saved</strong> access_token, refresh_token, tenant_id → Pass & Keys (staging env)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAILURE result -->
+    <div class="card">
+      <div class="card-title">Test Result — Failure (example) <span class="card-subtitle">US-188, FR-198</span></div>
+      <div class="result-box failure">
+        <div class="result-header">
+          <span class="sev critical">✗ FAILURE</span>
+          <span>HTTP 401 Unauthorized</span>
+          <span style="margin-left:auto;font-size:10px;color:#666">38 ms</span>
+        </div>
+        <div class="result-meta">error_type: HTTP_ERROR · message: Invalid or expired access token</div>
+        <div class="code-block">{
+  <span class="key">"error"</span>: <span class="str">"unauthorized"</span>,
+  <span class="key">"message"</span>: <span class="str">"Invalid or expired access token"</span>,
+  <span class="key">"request_id"</span>: <span class="str">"req_9b3d2e"</span>
+}</div>
+        <div style="margin-top:8px;font-size:10px;color:#991B1B">
+          catch: Authorization header missing Bearer token — inject <code>{{access_token}}</code> from vault?
+          <button class="btn btn-outline btn-xs" style="margin-left:6px">Fix &amp; Retry</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">Recent Test History</div>
+      <div class="history-item"><span class="ok">200</span> POST /auth/verify-otp · 142ms · 2 min ago</div>
+      <div class="history-item"><span class="fail">401</span> GET /auth/me · 38ms · 5 min ago</div>
+      <div class="history-item"><span class="ok">200</span> GET /health · 12ms · 8 min ago</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Pass & Keys vault -->
+  <div class="card" style="margin:0">
+    <div class="card-title">🔑 Pass & Keys <span class="card-subtitle">US-189–US-193, FR-199–FR-204</span></div>
+
+    <div class="toggle-row">
+      <span>Vault locked</span>
+      <span class="badge-locked">🔒 PIN required to reveal</span>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">Variables</div>
+      <div class="tab">Secrets</div>
+      <div class="tab">Audit</div>
+    </div>
+
+    <div style="font-size:10px;color:#888;margin-bottom:8px">Environment: <strong>staging</strong> · 8 keys</div>
+
+    <div class="vault-row">
+      <span class="vault-key">access_token</span>
+      <span class="vault-val">••••••••••••</span>
+      <span class="badge-auto">auto</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+        <button class="btn btn-outline btn-xs">Copy</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">refresh_token</span>
+      <span class="vault-val">••••••••••••</span>
+      <span class="badge-auto">auto</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+        <button class="btn btn-outline btn-xs">Copy</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">tenant_id</span>
+      <span class="vault-val revealed">T-0A3F1B2C</span>
+      <span class="badge-auto">auto</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Hide</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">anthropic_api_key</span>
+      <span class="vault-val">••••••••••••</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+        <button class="btn btn-outline btn-xs">Copy</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">mongodb_uri</span>
+      <span class="vault-val">••••••••••••</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+        <button class="btn btn-outline btn-xs">Copy</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">ti_abuseipdb_staging</span>
+      <span class="vault-val">••••••••••••</span>
+      <span class="badge-locked">TI</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">ti_otx_staging</span>
+      <span class="vault-val">••••••••••••</span>
+      <span class="badge-locked">TI</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+      </div>
+    </div>
+    <div class="vault-row">
+      <span class="vault-key">scan_id</span>
+      <span class="vault-val">••••••••••••</span>
+      <span class="badge-auto">auto</span>
+      <div class="vault-actions">
+        <button class="btn btn-outline btn-xs">Reveal</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:6px">
+      <button class="btn btn-primary btn-sm" style="flex:1">+ Add variable</button>
+    </div>
+
+    <div class="wf-note" style="margin-top:12px">
+      Non-secret IDs (tenant_id, scan_id) may show unmasked. All tokens, passwords, and API keys always require step-up to reveal.
+    </div>
+  </div>
+
+</div><!-- /layout-3 -->
+</div><!-- /panel-explorer -->
+
+<div id="panel-ti" class="panel-hidden">
+
+<div class="alert-strip info">
+  <span>📋</span>
+  <span>Feed catalogue, layer mapping, and correlation rules: <strong>docs/20_FREE_EXTERNAL_APIS.md</strong> (authoritative). This UI reads/writes runtime config only.</span>
+</div>
+
+<div class="toolbar">
+  <label class="form-label" style="margin:0">Environment</label>
+  <select class="form-select" style="width:120px"><option selected>staging</option><option>production</option></select>
+  <select class="form-select" style="width:100px"><option selected>All layers</option><option>L1</option><option>L7</option><option>L8</option></select>
+  <div class="spacer"></div>
+  <button class="btn btn-outline btn-sm">↻ Refresh</button>
+  <button class="btn btn-primary btn-sm">Test all enabled</button>
+</div>
+
+<div class="card">
+  <div class="card-title">Threat Intel Feed Registry <span class="card-subtitle">US-201 · FR-216 · GET /admin/ti/feeds</span></div>
+  <table class="feed-table">
+    <thead>
+      <tr><th>ID</th><th>Provider</th><th>Layers</th><th>Vault key</th><th>Quota 24h</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>EXT-007</strong></td>
+        <td>AbuseIPDB</td>
+        <td><span class="layer-tag">L1</span><span class="layer-tag">L7</span><span class="layer-tag">L8</span></td>
+        <td><code>ti_abuseipdb_staging</code></td>
+        <td>842 / 1,000 <div class="progress-bar" style="height:4px;background:#e0e8e0;margin-top:3px"><div style="width:84%;height:4px;background:#F59E0B;border-radius:2px"></div></div></td>
+        <td><span class="st st-ok"></span> ok</td>
+        <td><button class="btn btn-outline btn-xs">Test</button> <button class="btn btn-outline btn-xs">Usage</button></td>
+      </tr>
+      <tr>
+        <td><strong>EXT-008</strong></td>
+        <td>AlienVault OTX</td>
+        <td><span class="layer-tag">L7</span><span class="layer-tag">L8</span></td>
+        <td><code>ti_otx_staging</code></td>
+        <td>156 / ∞</td>
+        <td><span class="st st-ok"></span> ok</td>
+        <td><button class="btn btn-outline btn-xs">Test</button></td>
+      </tr>
+      <tr>
+        <td><strong>EXT-011</strong></td>
+        <td>Have I Been Pwned</td>
+        <td><span class="layer-tag">L1</span><span class="layer-tag">L5</span></td>
+        <td><code>ti_hibp_staging</code></td>
+        <td>12 / 500</td>
+        <td><span class="st st-ok"></span> ok</td>
+        <td><button class="btn btn-outline btn-xs">Test</button></td>
+      </tr>
+      <tr>
+        <td><strong>EXT-017</strong></td>
+        <td>URLhaus</td>
+        <td><span class="layer-tag">L1</span><span class="layer-tag">L2</span><span class="layer-tag">L8</span></td>
+        <td><em>no key</em></td>
+        <td>89 / ∞</td>
+        <td><span class="st st-ok"></span> ok</td>
+        <td><button class="btn btn-outline btn-xs">Test</button></td>
+      </tr>
+      <tr>
+        <td><strong>EXT-012</strong></td>
+        <td>VirusTotal</td>
+        <td><span class="layer-tag">L1</span><span class="layer-tag">L8</span></td>
+        <td><code>ti_virustotal_staging</code></td>
+        <td>412 / 500</td>
+        <td><span class="st st-warn"></span> quota 82%</td>
+        <td><button class="btn btn-outline btn-xs">Test</button></td>
+      </tr>
+      <tr>
+        <td><strong>EXT-013</strong></td>
+        <td>NIST NVD</td>
+        <td><span class="layer-tag">L2</span><span class="layer-tag">L9</span></td>
+        <td><em>no key</em></td>
+        <td>—</td>
+        <td><span class="st st-off"></span> disabled</td>
+        <td><button class="btn btn-outline btn-xs">Enable</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="wf-note" style="margin-top:10px">Full registry (32 feeds): see docs/20_FREE_EXTERNAL_APIS.md §5 — do not duplicate provider list in UI code; seed from catalogue JSON at deploy.</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+  <div class="card" style="margin:0">
+    <div class="card-title">Test result <span class="card-subtitle">US-203 · POST /admin/ti/feeds/{id}/test</span></div>
+    <div class="result-box success">
+      <div class="result-header"><span class="sev passed">SUCCESS</span> AbuseIPDB · 142ms</div>
+      <div class="result-meta">Sample IOC: 203.0.113.5 · abuseConfidenceScore: 100</div>
+      <div class="code-block">{
+  <span class="key">"success"</span>: <span class="num">true</span>,
+  <span class="key">"latency_ms"</span>: <span class="num">142</span>,
+  <span class="key">"message"</span>: <span class="str">"API key valid"</span>
+}</div>
+    </div>
+  </div>
+  <div class="card" style="margin:0">
+    <div class="card-title">Correlation preview <span class="card-subtitle">US-207 · FR-225</span></div>
+    <div style="font-size:11px;line-height:1.6">
+      <strong>Pattern:</strong> credential_breach_plus_auth_alert<br>
+      <strong>Cluster:</strong> HIBP (L1) + Wazuh brute-force (L7) · same tenant<br>
+      <strong>Report impact:</strong> enrichment_summary → Claude financial narrative
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#888">Cross-tenant early warning (FR-228): 5+ tenants hit same IOC → Metrics Observatory alert</div>
+  </div>
+</div>
+
+</div><!-- /panel-ti -->
+
+<!-- Step-up PIN modal (wireframe: hidden) -->
+<div class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">🔐 Unlock Pass & Keys</div>
+    <div class="modal-sub">Enter Super Admin PIN or password to reveal or copy secret values. Session valid for 5 minutes.</div>
+    <input class="form-input" type="password" placeholder="PIN or password" style="margin-bottom:10px;text-align:center;font-size:16px;letter-spacing:4px">
+    <div class="pin-dots">
+      <div class="pin-dot filled"></div>
+      <div class="pin-dot filled"></div>
+      <div class="pin-dot filled"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center">Unlock vault</button>
+    <div style="text-align:center;margin-top:10px;font-size:10px;color:#888">All reveal/copy actions are audit-logged (FR-204)</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</body>
+</html>

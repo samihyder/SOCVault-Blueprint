@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — SOCVault Team Administration</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.topbar-right .notif { color:#aaa; font-size:16px; cursor:pointer; position:relative; }
+.topbar-right .notif .dot { position:absolute; top:0; right:0; width:7px; height:7px;
+  background:#DC2626; border-radius:50%; border:1.5px solid #1B3D35; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; transition:background .15s; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.sidebar a .badge-count { margin-left:auto; background:#DC2626; color:#fff; font-size:9px;
+  font-weight:700; padding:1px 5px; border-radius:9px; }
+.main { margin-left:210px; margin-top:52px; padding:22px 24px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:18px; margin-bottom:16px; }
+.card-title { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:12px;
+  padding-bottom:8px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:8px; }
+.card-subtitle { font-size:10px; color:#888; margin-left:auto; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
+.metric { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:16px; text-align:center; }
+.metric .val { font-size:26px; font-weight:800; color:#1B3D35; line-height:1; }
+.metric .val.green { color:#4CC844; }
+.metric .lbl { font-size:10px; color:#888; margin-top:5px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.metric .sub { font-size:10px; color:#aaa; margin-top:3px; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.passed { background:#D1FAE5; color:#065F46; }
+.sev.medium { background:#FEF3C7; color:#92400E; }
+.status { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.status.active   { background:#D1FAE5; color:#065F46; }
+.status.inactive { background:#F3F4F6; color:#6B7280; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th { background:#1B3D35; color:#fff; font-size:11px; font-weight:600; padding:9px 12px; text-align:left; }
+thead th:first-child { border-radius:6px 0 0 0; }
+thead th:last-child  { border-radius:0 6px 0 0; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody tr:hover { background:#E8F0E8; }
+tbody td { padding:8px 12px; border-bottom:1px solid #e0e8e0; color:#444; vertical-align:middle; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-danger { background:#DC2626; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.form-group { margin-bottom:14px; }
+.form-label { font-size:11px; font-weight:600; color:#1B3D35; margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:8px 10px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; color:#222; background:#fff; }
+.form-hint { font-size:10px; color:#888; margin-top:3px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:16px; }
+.tab { padding:8px 16px; font-size:12px; font-weight:600; color:#888; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; }
+.alert-strip.critical { background:#FEF2F2; border-left:4px solid #DC2626; color:#991B1B; }
+.alert-strip.info     { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub   { font-size:12px; color:#888; margin-bottom:18px; }
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.search-box { padding:7px 12px; border:1.5px solid #d1d5db; border-radius:6px; font-size:12px; width:200px; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px;
+  padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+.checklist { list-style:none; }
+.checklist li { padding:5px 0; font-size:12px; display:flex; align-items:center; gap:8px; }
+.checklist li::before { content:'✓'; color:#4CC844; font-weight:700; }
+
+/* ROLE BADGE SYSTEM */
+.role-chip { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px;
+  border-radius:10px; white-space:nowrap; }
+.role-chip.soc-l1     { background:#EDE9FE; color:#5B21B6; }
+.role-chip.soc-l2     { background:#DDD6FE; color:#4C1D95; }
+.role-chip.soc-l3     { background:#C4B5FD; color:#3730A3; }
+.role-chip.soc-l4     { background:#A78BFA; color:#1E1B4B; }
+.role-chip.grc        { background:#D1FAE5; color:#065F46; }
+.role-chip.vapt       { background:#FEF3C7; color:#78350F; }
+.role-chip.recon      { background:#DBEAFE; color:#1E3A8A; }
+.role-chip.devops     { background:#E0E7FF; color:#312E81; }
+.role-chip.sysops     { background:#F1F5F9; color:#334155; }
+.role-chip.billing    { background:#FCE7F3; color:#831843; }
+.role-chip.executive  { background:#FEF9C3; color:#713F12; }
+.role-chip.manager    { background:#1B3D35; color:#4CC844; }
+
+/* TEAM CARD */
+.team-card { background:#fff; border:1px solid #e0e8e0; border-radius:8px; padding:14px;
+  margin-bottom:8px; display:flex; align-items:center; gap:14px; }
+.team-icon { font-size:24px; min-width:36px; text-align:center; }
+.team-info { flex:1; }
+.team-name { font-size:13px; font-weight:700; color:#1B3D35; }
+.team-meta { font-size:11px; color:#888; margin-top:2px; }
+.team-members { display:flex; gap:4px; flex-wrap:wrap; margin-top:5px; }
+
+/* PERM TABLE */
+.perm-yes { color:#4CC844; font-size:13px; font-weight:700; }
+.perm-no  { color:#DC2626; font-size:13px; font-weight:700; }
+.perm-ltd { color:#F59E0B; font-size:11px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">INTERNAL · SUPERADMIN</span>
+    <div class="notif">🔔<span class="dot"></span></div>
+    <div class="avatar">SA</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Overview</div>
+  <a href="02-dashboard.html"><span class="ico">🏠</span>Dashboard</a>
+  <a href="17-settings.html"><span class="ico">🌐</span>Domains & Assets</a>
+  <div class="sidebar-section">Scan Layers</div>
+  <a href="03-l1-recon.html"><span class="ico">🔍</span>L1 — Free Recon</a>
+  <a href="05-l2-web.html"><span class="ico">🕸️</span>L2 — Web AppSec</a>
+  <a href="06-l3-mobile.html"><span class="ico">📱</span>L3 — Mobile</a>
+  <a href="07-l4-api.html"><span class="ico">⚡</span>L4 — API Security</a>
+  <a href="08-l5-compliance.html"><span class="ico">📋</span>L5 — Compliance</a>
+  <a href="09-l6-cloud.html"><span class="ico">☁️</span>L6 — Cloud</a>
+  <a href="10-l7-soc.html"><span class="ico">🛡️</span>L7 — SOC/SIEM<span class="badge-count">3</span></a>
+  <a href="11-l8-malware.html"><span class="ico">🦠</span>L8 — Malware<span class="badge-count">1</span></a>
+  <a href="20-l9-ai-scan.html"><span class="ico">✦</span>L9 — AI Agent Scan</a>
+  <div class="sidebar-section">Platform</div>
+  <a href="12-ai-chat.html"><span class="ico">💬</span>AI Chat Assistant</a>
+  <a href="13-soar.html"><span class="ico">⚙️</span>SOAR & Playbooks</a>
+  <a href="04-l1-report.html"><span class="ico">📄</span>AI Risk Report</a>
+  <a href="14-billing.html"><span class="ico">💳</span>Billing</a>
+  <a href="15-msp-portal.html"><span class="ico">🏢</span>MSP Portal</a>
+  <a href="21-tenant-teams.html"><span class="ico">👥</span>Team & Sub-Users</a>
+  <a href="16-notifications.html"><span class="ico">🔔</span>Notifications<span class="badge-count">5</span></a>
+  <a href="17-settings.html"><span class="ico">⚙️</span>Settings</a>
+  <a href="18-audit-log.html"><span class="ico">📜</span>Audit Log</a>
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="22-socvault-team-admin.html" class="active"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html"><span class="ico">📈</span>Metrics Observatory</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:10px">
+  <span class="story-ref">US-151</span><span class="story-ref">US-152</span><span class="story-ref">US-153</span>
+  <span class="story-ref">US-154</span><span class="story-ref">US-155</span><span class="story-ref">US-156</span>
+  <span class="story-ref">US-157</span><span class="story-ref">US-158</span><span class="story-ref">US-159</span>
+  <span class="story-ref">US-160</span><span class="story-ref">US-161</span><span class="story-ref">US-162</span>
+  <span class="story-ref">US-163</span><span class="story-ref">US-164</span><span class="story-ref">US-165</span>
+</div>
+
+<div class="page-title">SOCVault Team Administration</div>
+<div class="page-sub">SOCVault Internal · Superadmin · Manage internal teams, roles, and RBAC permissions</div>
+
+<div class="alert-strip critical" style="margin-bottom:16px">
+  ⚠ This panel manages SOCVault's internal staff access — not tenant accounts. Changes affect the platform operator's own team.
+</div>
+
+<div class="grid-4" style="margin-bottom:16px">
+  <div class="metric"><div class="val">9</div><div class="lbl">Active Teams</div><div class="sub">+1 pending provisioning</div></div>
+  <div class="metric"><div class="val green">23</div><div class="lbl">Team Members</div><div class="sub">18 active today</div></div>
+  <div class="metric"><div class="val">12</div><div class="lbl">Role Types</div><div class="sub">Granular RBAC</div></div>
+  <div class="metric"><div class="val green">100%</div><div class="lbl">MFA Coverage</div><div class="sub">All members enrolled</div></div>
+</div>
+
+<div class="grid-2">
+
+  <!-- Left: Team List -->
+  <div>
+    <div class="card">
+      <div class="card-title">🏢 Internal Teams <span class="card-subtitle">US-151, US-159</span></div>
+      <div class="toolbar">
+        <input class="search-box" placeholder="Search team or member…">
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm">+ Create Team</button>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">🛡️</div>
+        <div class="team-info">
+          <div class="team-name">SOC Operations</div>
+          <div class="team-meta">8 members · L1–L4 tiered roles · 24/7 on-call rotation</div>
+          <div class="team-members">
+            <span class="role-chip soc-l1">SOC L1 ×3</span>
+            <span class="role-chip soc-l2">SOC L2 ×2</span>
+            <span class="role-chip soc-l3">SOC L3 ×2</span>
+            <span class="role-chip soc-l4">SOC L4 ×1</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">📋</div>
+        <div class="team-info">
+          <div class="team-name">GRC & Compliance</div>
+          <div class="team-meta">3 members · Framework analysis, policy, audit support</div>
+          <div class="team-members">
+            <span class="role-chip grc">GRC Analyst ×3</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">🔬</div>
+        <div class="team-info">
+          <div class="team-name">VA/PT Engineering</div>
+          <div class="team-meta">4 members · Managed VAPT delivery, findings review, L1–L9 scans</div>
+          <div class="team-members">
+            <span class="role-chip vapt">VA/PT Engineer ×2</span>
+            <span class="role-chip recon">Recon & Enum ×2</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">⚙️</div>
+        <div class="team-info">
+          <div class="team-name">Platform Engineering</div>
+          <div class="team-meta">4 members · DevOps, SystemOps, infrastructure, CI/CD</div>
+          <div class="team-members">
+            <span class="role-chip devops">DevOps ×2</span>
+            <span class="role-chip sysops">SystemOps ×2</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">💳</div>
+        <div class="team-info">
+          <div class="team-name">Billing & Finance</div>
+          <div class="team-meta">2 members · Revenue ops, invoicing, per-tenant COGS tracking</div>
+          <div class="team-members">
+            <span class="role-chip billing">Billing ×2</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-icon">🏆</div>
+        <div class="team-info">
+          <div class="team-name">Leadership</div>
+          <div class="team-meta">2 members · Executive overview, board reporting, strategic metrics</div>
+          <div class="team-members">
+            <span class="role-chip executive">Executive ×1</span>
+            <span class="role-chip manager">Manager ×1</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="status active">Active</span>
+          <button class="btn btn-outline btn-xs" style="margin-top:4px">Manage</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right: RBAC Matrix + Create Team -->
+  <div>
+
+    <div class="card">
+      <div class="card-title">➕ Create New Team <span class="card-subtitle">US-159, US-160</span></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Team Name</label>
+          <input class="form-input" placeholder="e.g. Threat Intelligence">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Primary Role</label>
+          <select class="form-input">
+            <option>SOC L1</option>
+            <option>SOC L2</option>
+            <option>SOC L3</option>
+            <option>SOC L4</option>
+            <option>GRC Analyst</option>
+            <option>VA/PT Engineer</option>
+            <option>Recon & Enumeration</option>
+            <option>DevOps</option>
+            <option>SystemOps</option>
+            <option>Billing</option>
+            <option>Executive</option>
+            <option>Manager</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Initial Members (business emails, comma-separated)</label>
+        <textarea class="form-input" rows="2" placeholder="alice@socvault.io, bob@socvault.io"></textarea>
+        <div class="form-hint">Invitations will be sent with 48h expiry. MFA enrolment required within 24h of first login.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Justification (audit requirement)</label>
+        <input class="form-input" placeholder="Why is this team being created?">
+      </div>
+      <button class="btn btn-primary" style="width:100%">⚡ Provision Team (target: &lt;2 min)</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔐 Role Capability Matrix <span class="card-subtitle">US-152–US-158</span></div>
+
+      <div style="overflow-x:auto">
+        <table style="font-size:11px">
+          <thead>
+            <tr>
+              <th style="min-width:120px">Capability</th>
+              <th><span class="role-chip soc-l1">L1</span></th>
+              <th><span class="role-chip soc-l2">L2</span></th>
+              <th><span class="role-chip soc-l3">L3</span></th>
+              <th><span class="role-chip soc-l4">L4</span></th>
+              <th><span class="role-chip grc">GRC</span></th>
+              <th><span class="role-chip vapt">VAPT</span></th>
+              <th><span class="role-chip recon">Recon</span></th>
+              <th><span class="role-chip devops">DevOps</span></th>
+              <th><span class="role-chip sysops">SysOps</span></th>
+              <th><span class="role-chip billing">Billing</span></th>
+              <th><span class="role-chip executive">Exec</span></th>
+              <th><span class="role-chip manager">Mgr</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Alert Triage Queue</strong></td>
+              <td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Escalate Incidents</strong></td>
+              <td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Approve Playbooks</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Cross-Tenant Threat Hunt</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Compliance Reports (all tenants)</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-ltd">Ltd</span></td>
+              <td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Run Scans (L1–L9, all tenants)</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-ltd">L1 only</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure Config</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-ltd">Ltd</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Platform Health Dashboard</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-ltd">Ltd</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Billing & Revenue Metrics</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Manage Team Members</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>Metrics Observatory</strong></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-ltd">Ltd</span></td>
+              <td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td>
+              <td><span class="perm-yes">✓</span></td><td><span class="perm-ltd">Ltd</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:#888">
+        <span class="perm-ltd">Ltd</span> = Read-only or scoped subset · Full matrix editable by Manager role only
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Member Detail Table -->
+<div class="card">
+  <div class="card-title">👤 All Team Members <span class="card-subtitle">US-160, US-161</span></div>
+  <div class="toolbar">
+    <input class="search-box" placeholder="Search by name, email, or role…">
+    <select class="form-input" style="width:160px;padding:6px;font-size:12px">
+      <option>All Roles</option>
+      <option>SOC L1–L4</option>
+      <option>GRC Analyst</option>
+      <option>VA/PT Engineer</option>
+      <option>DevOps / SysOps</option>
+      <option>Billing</option>
+      <option>Executive</option>
+    </select>
+    <div class="spacer"></div>
+    <button class="btn btn-primary btn-sm">+ Add Member</button>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Role</th><th>Team</th><th>MFA</th><th>Last Active</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Alice Chen</td><td>alice@socvault.io</td><td><span class="role-chip soc-l4">SOC L4</span></td><td>SOC Operations</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 11:22</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Marcus Webb</td><td>marcus@socvault.io</td><td><span class="role-chip soc-l3">SOC L3</span></td><td>SOC Operations</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 10:05</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Priya Nair</td><td>priya@socvault.io</td><td><span class="role-chip grc">GRC Analyst</span></td><td>GRC & Compliance</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 09:48</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Jake Torres</td><td>jake@socvault.io</td><td><span class="role-chip vapt">VA/PT Engineer</span></td><td>VA/PT Engineering</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 08:30</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Yuki Tanaka</td><td>yuki@socvault.io</td><td><span class="role-chip recon">Recon & Enum</span></td><td>VA/PT Engineering</td><td><span class="sev passed">✓ TOTP</span></td><td>Yesterday 17:55</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Sam Patel</td><td>sam@socvault.io</td><td><span class="role-chip devops">DevOps</span></td><td>Platform Engineering</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 07:15</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>Lisa Grant</td><td>lisa@socvault.io</td><td><span class="role-chip billing">Billing</span></td><td>Billing & Finance</td><td><span class="sev passed">✓ TOTP</span></td><td>Today 09:00</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+      <tr><td>David Kim</td><td>david@socvault.io</td><td><span class="role-chip manager">Manager</span></td><td>Leadership</td><td><span class="sev passed">✓ HW Key</span></td><td>Today 11:01</td><td><button class="btn btn-outline btn-xs">Edit</button> <button class="btn btn-danger btn-xs">Revoke</button></td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+</body>
+</html>

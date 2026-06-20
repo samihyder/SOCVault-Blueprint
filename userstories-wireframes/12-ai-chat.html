@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault — AI Security Assistant (Claude-Powered)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gd:#1B3D35; --gm:#2a5a4a; --gl:#4CC844; --white:#fff;
+  --bg:#F1F5F2; --border:#E0EAE4; --text:#3D4F47; --muted:#7A9088;
+  --red:#DC2626; --amber:#F59E0B; --blue:#2563EB; --purple:#7C3AED;
+  --shadow:0 4px 20px rgba(27,61,53,.10);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:52px;background:var(--gd);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.tb-logo{font-size:17px;font-weight:800;color:var(--gl);display:flex;align-items:center;gap:8px;}
+.tb-badge{background:rgba(76,200,68,.18);border:1px solid rgba(76,200,68,.35);color:var(--gl);font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;}
+.tb-spacer{flex:1;}
+.credit-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;cursor:pointer;}
+.credit-chip .val{font-size:13px;font-weight:800;color:var(--gl);}
+.credit-chip .lbl{font-size:10px;color:#9fc8b8;}
+.credit-chip .low{color:var(--amber);}
+.tb-btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:none;}
+.tb-btn-outline{background:transparent;color:#9fc8b8;border:1px solid rgba(255,255,255,.2);}
+.tb-avatar{width:32px;height:32px;border-radius:8px;background:var(--gl);color:var(--gd);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT SIDEBAR */
+.chat-sidebar{width:260px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.cs-header{padding:14px 16px;border-bottom:1px solid var(--border);}
+.cs-header h3{font-size:12px;font-weight:700;color:var(--gd);margin-bottom:8px;}
+.cs-new{width:100%;padding:8px;background:var(--gl);color:var(--gd);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.cs-search{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;margin-top:8px;outline:none;color:var(--text);}
+.cs-section{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:12px 16px 4px;}
+.cs-thread{padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.cs-thread:hover{background:var(--bg);}
+.cs-thread.active{background:#EEF7EE;border-left-color:var(--gl);}
+.cs-thread-title{font-size:12px;font-weight:600;color:var(--gd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cs-thread-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;justify-content:space-between;}
+.cs-thread-cost{font-size:10px;font-weight:700;color:var(--gl);}
+
+/* MAIN CHAT PANEL */
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* CHAT HEADER */
+.chat-header{padding:12px 18px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.chat-header-icon{width:36px;height:36px;border-radius:9px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.chat-header-info h3{font-size:13px;font-weight:700;color:var(--gd);}
+.chat-header-info p{font-size:11px;color:var(--muted);}
+.chat-header-spacer{flex:1;}
+.ch-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#E8F5E8;color:var(--gd);}
+.ch-cost-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:#FEF3C7;color:#92400E;}
+
+/* MESSAGES AREA */
+.messages{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth;}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-thumb{background:rgba(27,61,53,.15);border-radius:2px;}
+
+/* USER MESSAGE */
+.msg-user{display:flex;justify-content:flex-end;}
+.msg-user-bubble{background:var(--gd);color:#fff;padding:10px 14px;border-radius:14px 14px 4px 14px;max-width:70%;font-size:13px;line-height:1.5;box-shadow:0 2px 8px rgba(27,61,53,.2);}
+.msg-user-meta{font-size:10px;color:var(--muted);text-align:right;margin-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:6px;}
+.credit-used{background:#FEF3C7;color:#92400E;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;}
+
+/* CLAUDE MESSAGE */
+.msg-claude{display:flex;gap:10px;align-items:flex-start;}
+.claude-avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--gd),var(--gm));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;box-shadow:0 2px 8px rgba(27,61,53,.2);}
+.msg-claude-content{flex:1;max-width:85%;}
+.claude-name{font-size:10px;font-weight:700;color:var(--gd);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.claude-name .model-tag{background:#F3E8FF;color:var(--purple);font-size:9px;padding:1px 6px;border-radius:6px;font-weight:700;}
+
+/* REASONING BLOCK */
+.reasoning-block{background:#FAFCFA;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.reasoning-header{padding:8px 12px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;}
+.reasoning-header:hover{background:var(--bg);}
+.reasoning-icon{font-size:13px;}
+.reasoning-label{font-size:11px;font-weight:600;color:var(--muted);flex:1;}
+.reasoning-time{font-size:10px;color:var(--muted);}
+.reasoning-toggle{font-size:12px;color:var(--muted);transition:transform .2s;}
+.reasoning-body{padding:10px 14px;font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);background:#F8FAF8;font-style:italic;}
+.reasoning-body.hidden{display:none;}
+
+/* CLAUDE RESPONSE BUBBLE */
+.claude-bubble{background:#fff;border:1px solid var(--border);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--text);box-shadow:var(--shadow);}
+.claude-bubble p{margin-bottom:8px;}
+.claude-bubble p:last-child{margin-bottom:0;}
+.claude-bubble strong{color:var(--gd);}
+.claude-bubble code{background:#F1F5F2;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;color:var(--gd);}
+
+/* ACTION CARDS */
+.action-cards{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.action-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:box-shadow .15s;}
+.action-card:hover{box-shadow:var(--shadow);}
+.action-card-header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg);}
+.action-card-icon{font-size:15px;}
+.action-card-title{font-size:12px;font-weight:700;color:var(--gd);flex:1;}
+.action-card-cost{font-size:10px;font-weight:700;color:var(--muted);background:#fff;border:1px solid var(--border);padding:2px 7px;border-radius:10px;}
+.action-btn{padding:5px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;gap:5px;}
+.action-btn-primary{background:var(--gl);color:var(--gd);}
+.action-btn-outline{background:#fff;color:var(--gd);border:1.5px solid var(--border);}
+.action-card-desc{padding:8px 12px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);background:#fff;}
+
+/* INLINE RESULT */
+.inline-result{border:1px solid var(--gl);border-radius:8px;margin-top:8px;overflow:hidden;}
+.ir-header{background:linear-gradient(135deg,var(--gd),var(--gm));padding:8px 12px;display:flex;align-items:center;gap:8px;}
+.ir-title{font-size:11px;font-weight:700;color:#fff;flex:1;}
+.ir-badge{background:rgba(76,200,68,.25);color:var(--gl);font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;}
+.ir-body{background:#fff;padding:10px 12px;}
+.ir-table{width:100%;border-collapse:collapse;font-size:11px;}
+.ir-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:5px 8px;background:var(--bg);text-align:left;border-bottom:1px solid var(--border);}
+.ir-table td{padding:6px 8px;border-bottom:1px solid #f4f7f5;vertical-align:middle;}
+.ir-table tr:last-child td{border-bottom:none;}
+
+/* SEVERITY PILLS */
+.sev{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;}
+.sev-c{background:#FEE2E2;color:#991B1B;}
+.sev-h{background:#FEF3C7;color:#92400E;}
+.sev-m{background:#DBEAFE;color:#1E40AF;}
+
+/* CODE RESULT */
+.code-result{background:#1e2d2a;border-radius:6px;padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#4CC844;overflow-x:auto;margin-top:6px;}
+.code-result .comment{color:#6aab90;}
+
+/* PROGRESS INDICATOR */
+.thinking-indicator{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);}
+.thinking-dots{display:flex;gap:4px;}
+.thinking-dot{width:7px;height:7px;border-radius:50%;background:var(--gl);animation:bounce 1.2s ease infinite;}
+.thinking-dot:nth-child(2){animation-delay:.2s;}
+.thinking-dot:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,80%,100%{transform:scale(1);}40%{transform:scale(1.5);}}
+.thinking-text{font-size:12px;color:var(--muted);font-style:italic;}
+
+/* INPUT AREA */
+.input-area{background:#fff;border-top:1px solid var(--border);padding:12px 16px;flex-shrink:0;}
+.input-context{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.ctx-chip{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--gd);font-weight:600;}
+.ctx-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0;line-height:1;}
+.ctx-add{background:none;border:1px dashed var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;}
+.input-row{display:flex;gap:10px;align-items:flex-end;}
+.input-box{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;resize:none;outline:none;font-family:inherit;line-height:1.5;color:var(--text);max-height:120px;}
+.input-box:focus{border-color:var(--gl);}
+.input-actions{display:flex;flex-direction:column;gap:6px;}
+.send-btn{width:40px;height:40px;border-radius:9px;background:var(--gl);border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.send-btn:hover{background:#3db838;}
+.input-footer{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:10px;color:var(--muted);}
+.cost-indicator{display:flex;align-items:center;gap:4px;}
+.cost-indicator strong{color:var(--gd);}
+.suggestion-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+.suggestion-chips::-webkit-scrollbar{display:none;}
+.sug-chip{white-space:nowrap;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:16px;font-size:11px;cursor:pointer;color:var(--gd);font-weight:500;flex-shrink:0;}
+.sug-chip:hover{background:#E8F0E8;border-color:var(--gl);}
+
+/* RIGHT PANEL */
+.chat-right{width:256px;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.cr-section{padding:14px 14px 0;}
+.cr-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.credit-card{background:linear-gradient(135deg,var(--gd),var(--gm));border-radius:10px;padding:14px;color:#fff;margin-bottom:10px;}
+.credit-balance{font-size:28px;font-weight:800;color:var(--gl);}
+.credit-lbl{font-size:10px;color:#9fc8b8;margin-bottom:6px;}
+.credit-bar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden;margin:8px 0;}
+.credit-fill{height:100%;background:var(--gl);border-radius:3px;}
+.credit-meta{font-size:10px;color:#9fc8b8;}
+.buy-btn{width:100%;padding:7px;background:var(--gl);color:var(--gd);border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;margin-top:8px;}
+.bundle-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.bundle{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;}
+.bundle:hover{border-color:var(--gl);background:#F0FDF4;}
+.bundle.popular{border-color:var(--gl);background:#F0FDF4;}
+.bundle-credits{font-size:14px;font-weight:800;color:var(--gd);}
+.bundle-price{font-size:11px;color:var(--muted);margin-top:1px;}
+.bundle-tag{margin-left:auto;font-size:9px;font-weight:700;background:var(--gl);color:var(--gd);padding:1px 6px;border-radius:8px;}
+.capability-list{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}
+.cap-item{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;border-radius:6px;font-size:11px;color:var(--text);}
+.cap-item:hover{background:var(--bg);}
+.cap-icon{font-size:13px;flex-shrink:0;}
+.cap-label{flex:1;color:var(--gd);font-weight:500;}
+.cap-cost{font-size:9px;font-weight:700;color:var(--muted);background:var(--bg);padding:1px 5px;border-radius:5px;flex-shrink:0;}
+.session-stats{background:var(--bg);border-radius:8px;padding:10px;margin-bottom:14px;}
+.ss-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dashed var(--border);}
+.ss-row:last-child{border-bottom:none;}
+.ss-key{color:var(--muted);}
+.ss-val{font-weight:700;color:var(--gd);}
+.cr-divider{height:1px;background:var(--border);margin:0 14px 14px;}
+.story-ref{display:inline-block;font-size:9px;font-weight:700;background:#E8F0E8;color:#1B3D35;padding:2px 6px;border-radius:4px;margin:0 2px 2px 0;border:1px solid #b8d4c8;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">🛡️ SOCVault <span style="font-size:12px;font-weight:400;color:#9fc8b8;margin-left:6px">AI Security Assistant</span></div>
+  <div class="tb-badge">Powered by Claude</div>
+  <div class="tb-spacer"></div>
+  <div class="credit-chip" onclick="document.getElementById('buy-modal').style.display='flex'">
+    <span style="font-size:14px">💳</span>
+    <div><div class="val">247</div><div class="lbl">credits remaining</div></div>
+  </div>
+  <button class="tb-btn tb-btn-outline" onclick="document.getElementById('buy-modal').style.display='flex'">Buy Credits</button>
+  <a href="02-dashboard.html" class="tb-btn tb-btn-outline" style="text-decoration:none">← Dashboard</a>
+  <div class="tb-avatar">JD</div>
+</div>
+
+<div class="layout">
+
+<!-- LEFT: CONVERSATION SIDEBAR -->
+<div class="chat-sidebar">
+  <div class="cs-header">
+    <h3>Conversations</h3>
+    <button class="cs-new">✦ New Chat</button>
+    <input class="cs-search" placeholder="🔍 Search conversations…">
+  </div>
+
+  <div class="cs-section">Today</div>
+
+  <div class="cs-thread active">
+    <div class="cs-thread-title">Why is my health score 68?</div>
+    <div class="cs-thread-meta"><span>07:14 · 3 actions</span><span class="cs-thread-cost">-8 credits</span></div>
+  </div>
+  <div class="cs-thread">
+    <div class="cs-thread-title">Fix my DMARC configuration</div>
+    <div class="cs-thread-meta"><span>06:50 · 2 actions</span><span class="cs-thread-cost">-5 credits</span></div>
+  </div>
+  <div class="cs-thread">
+    <div class="cs-thread-title">Show my AWS S3 exposure</div>
+    <div class="cs-thread-meta"><span>05:30 · 1 action</span><span class="cs-thread-cost">-3 credits</span></div>
+  </div>
+
+  <div class="cs-section">Yesterday</div>
+
+  <div class="cs-thread">
+    <div class="cs-thread-title">GDPR compliance gaps for audit</div>
+    <div class="cs-thread-meta"><span>14:22 · 4 actions</span><span class="cs-thread-cost">-12 credits</span></div>
+  </div>
+  <div class="cs-thread">
+    <div class="cs-thread-title">Explain SQL injection finding</div>
+    <div class="cs-thread-meta"><span>11:08 · 1 action</span><span class="cs-thread-cost">-3 credits</span></div>
+  </div>
+  <div class="cs-thread">
+    <div class="cs-thread-title">Run L2 scan on api.acmecorp.com</div>
+    <div class="cs-thread-meta"><span>09:15 · 2 actions</span><span class="cs-thread-cost">-7 credits</span></div>
+  </div>
+
+  <div class="cs-section">This Week</div>
+
+  <div class="cs-thread">
+    <div class="cs-thread-title">Approve malware quarantine #INC-0421</div>
+    <div class="cs-thread-meta"><span>Mon · 1 action</span><span class="cs-thread-cost">-2 credits</span></div>
+  </div>
+  <div class="cs-thread">
+    <div class="cs-thread-title">How to fix Nuclei CVE-2024-1234?</div>
+    <div class="cs-thread-meta"><span>Mon · 0 actions</span><span class="cs-thread-cost">-1 credit</span></div>
+  </div>
+</div>
+
+<!-- CENTRE: CHAT PANEL -->
+<div class="chat-main">
+
+<div style="padding:8px 18px;background:#fff;border-bottom:1px solid var(--border)"><span class="story-ref">US-121</span><span class="story-ref">US-122</span><span class="story-ref">US-123</span><span class="story-ref">US-124</span><span class="story-ref">US-125</span><span class="story-ref">US-126</span><span class="story-ref">US-127</span><span class="story-ref">US-128</span><span class="story-ref">US-129</span></div>
+
+  <!-- CHAT HEADER -->
+  <div class="chat-header">
+    <div class="chat-header-icon">🤖</div>
+    <div class="chat-header-info">
+      <h3>SOCVault AI Assistant</h3>
+      <p>claude-sonnet-4-6 · Aware of your assets, findings, and scan history · Context: acmecorp.com</p>
+    </div>
+    <div class="chat-header-spacer"></div>
+    <span class="ch-tag">acmecorp.com</span>
+    <span class="ch-cost-tag">8 credits used this session</span>
+    <button style="background:none;border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer">⚙ Settings</button>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="msg-area">
+
+    <!-- SYSTEM MESSAGE -->
+    <div style="text-align:center;padding:8px 0">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--muted)">
+        🔒 This session is private to your tenant &nbsp;·&nbsp; Context loaded: 12 open findings, 8 agents, 4 domains
+      </div>
+    </div>
+
+    <!-- USER MESSAGE 1 -->
+    <div class="msg-user">
+      <div>
+        <div class="msg-user-bubble">Why is my security health score 68? What are the biggest issues dragging it down?</div>
+        <div class="msg-user-meta"><span class="credit-used">-1 credit</span><span>07:02 · Jane Doe</span></div>
+      </div>
+    </div>
+
+    <!-- CLAUDE RESPONSE 1 -->
+    <div class="msg-claude">
+      <div class="claude-avatar">✦</div>
+      <div class="msg-claude-content">
+        <div class="claude-name">SOCVault AI <span class="model-tag">claude-sonnet-4-6</span></div>
+
+        <div class="reasoning-block">
+          <div class="reasoning-header" onclick="toggleReasoning(this)">
+            <span class="reasoning-icon">🧠</span>
+            <span class="reasoning-label">Reasoning — Analysing scan data for acmecorp.com</span>
+            <span class="reasoning-time">1.2s</span>
+            <span class="reasoning-toggle">▼</span>
+          </div>
+          <div class="reasoning-body">
+            Let me look at what's pulling the score down. The tenant has 12 open findings across L1–L6.
+            The scoring algorithm weights Critical findings at -8 pts each, High at -3 pts, Medium at -1 pt.
+            Starting from 100: 3 Criticals = -24, 4 Highs = -12, 5 Mediums = -5, bonus for active SOC/SIEM = +8,
+            bonus for 8 layers active = +5. That gives roughly 100 - 24 - 12 - 5 + 8 + 5 = 72...
+            rounding to 68 when FIM and compliance gaps are factored in. Let me surface the exact top contributors clearly.
+          </div>
+        </div>
+
+        <div class="claude-bubble">
+          <p>Your score of <strong>68/100 (Grade C+)</strong> is being dragged down by <strong>3 critical vulnerabilities</strong> that together account for approximately <strong>-22 points</strong>. Here's what's hitting you hardest:</p>
+          <p><strong>1. SQL Injection on <code>/api/search</code> (L2) — worst offender</strong><br>This is the single biggest score penalty. Any unauthenticated attacker can extract your entire database using a tool like sqlmap in under 5 minutes. This alone costs you <strong>8 score points</strong> and puts <strong>£18,000</strong> of liability on your exposure total.</p>
+          <p><strong>2. BOLA vulnerability on <code>/orders/{id}</code> (L4)</strong><br>Any logged-in customer can view any other customer's orders by changing the ID. Classic broken access control — costs you another <strong>8 points</strong>.</p>
+          <p><strong>3. Subdomain takeover on <code>staging.acmecorp.com</code> (L1)</strong><br>A dangling CNAME pointing to an unclaimed Heroku endpoint. Attackers could host phishing content on your subdomain. <strong>-6 points</strong>.</p>
+          <p>The good news: <strong>your SOC is excellent</strong> — 12/12 agents active, SOAR working (+8 pts). Fix the three criticals and you'd jump to approximately <strong>90/100</strong>.</p>
+        </div>
+
+        <!-- ACTION CARDS -->
+        <div class="action-cards">
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">🔍</span>
+              <span class="action-card-title">Run fresh L2 Web AppSec scan to confirm SQL injection</span>
+              <span class="action-card-cost">3 credits</span>
+              <button class="action-btn action-btn-primary" onclick="triggerAction(this, 'l2-scan')">▶ Run Scan</button>
+            </div>
+            <div class="action-card-desc">Triggers a targeted Nuclei + OWASP ZAP scan on <code>/api/search</code> and related endpoints. Results shown here when complete (~20 min).</div>
+          </div>
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">📋</span>
+              <span class="action-card-title">Show me all 12 open findings ranked by impact</span>
+              <span class="action-card-cost">1 credit</span>
+              <button class="action-btn action-btn-primary" onclick="triggerAction(this, 'findings')">▶ Show</button>
+            </div>
+            <div class="action-card-desc">Pulls your current open findings from all layers, ranked by financial exposure.</div>
+          </div>
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">🔧</span>
+              <span class="action-card-title">Generate fix scripts for all 3 criticals</span>
+              <span class="action-card-cost">2 credits</span>
+              <button class="action-btn action-btn-primary" onclick="triggerAction(this, 'fixes')">▶ Generate</button>
+            </div>
+            <div class="action-card-desc">Claude will generate copy-paste remediation scripts for SQLi, BOLA, and subdomain takeover.</div>
+          </div>
+        </div>
+
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">07:02 · 1,842 tokens · cached: 1,104 · cost: 0.8 credits</div>
+      </div>
+    </div>
+
+    <!-- USER MESSAGE 2 -->
+    <div class="msg-user">
+      <div>
+        <div class="msg-user-bubble">Show me all 12 open findings ranked by impact</div>
+        <div class="msg-user-meta"><span class="credit-used">-1 credit</span><span>07:04 · Jane Doe</span></div>
+      </div>
+    </div>
+
+    <!-- CLAUDE RESPONSE 2 with inline result -->
+    <div class="msg-claude">
+      <div class="claude-avatar">✦</div>
+      <div class="msg-claude-content">
+        <div class="claude-name">SOCVault AI <span class="model-tag">claude-sonnet-4-6</span></div>
+
+        <div class="reasoning-block">
+          <div class="reasoning-header" onclick="toggleReasoning(this)">
+            <span class="reasoning-icon">🧠</span>
+            <span class="reasoning-label">Reasoning — Querying findings API, sorting by financial exposure</span>
+            <span class="reasoning-time">0.4s</span>
+            <span class="reasoning-toggle">▼</span>
+          </div>
+          <div class="reasoning-body hidden">
+            Fetching all open findings from the tenant's scan database. Ranking by: (severity_weight × financial_exposure).
+            Critical=4x multiplier, High=2x, Medium=1x. Will pull from L1, L2, L4, L6 as those are the layers with active findings.
+          </div>
+        </div>
+
+        <div class="claude-bubble">
+          <p>Here are all <strong>12 open findings</strong> across your estate, ranked by financial risk. The top 3 alone account for <strong>£37,200</strong> — over 78% of your total exposure:</p>
+        </div>
+
+        <!-- INLINE RESULT TABLE -->
+        <div class="inline-result">
+          <div class="ir-header">
+            <span style="font-size:14px">📊</span>
+            <span class="ir-title">Open Findings — acmecorp.com · All Layers · Ranked by Exposure</span>
+            <span class="ir-badge">LIVE DATA</span>
+            <button style="background:rgba(255,255,255,.15);border:none;color:#9fc8b8;font-size:10px;padding:2px 8px;border-radius:6px;cursor:pointer">⬇ CSV</button>
+          </div>
+          <div class="ir-body">
+            <table class="ir-table">
+              <thead><tr><th>#</th><th>Finding</th><th>Layer</th><th>Severity</th><th>Exposure</th><th>Fix Time</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td style="font-weight:800;color:var(--red)">1</td><td><strong>SQL Injection — /api/search</strong></td><td>L2</td><td><span class="sev sev-c">CRITICAL</span></td><td style="font-weight:700;color:var(--red)">£18,000</td><td>30 min</td><td><button class="action-btn action-btn-primary" style="font-size:10px;padding:3px 8px" onclick="showFix()">Fix</button></td></tr>
+                <tr><td style="font-weight:800;color:var(--red)">2</td><td><strong>Subdomain takeover — staging.acmecorp.com</strong></td><td>L1</td><td><span class="sev sev-c">CRITICAL</span></td><td style="font-weight:700;color:var(--red)">£10,000</td><td>5 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td style="font-weight:800;color:var(--red)">3</td><td><strong>BOLA — /orders/{id} access control</strong></td><td>L4</td><td><span class="sev sev-c">CRITICAL</span></td><td style="font-weight:700;color:var(--red)">£9,200</td><td>2 hrs</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td style="font-weight:800;color:var(--amber)">4</td><td><strong>DMARC policy set to 'none'</strong></td><td>L1</td><td><span class="sev sev-h">HIGH</span></td><td style="font-weight:700;color:var(--amber)">£9,500</td><td>5 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td style="font-weight:800;color:var(--amber)">5</td><td><strong>IAM privilege escalation — dev-ci-role</strong></td><td>L6</td><td><span class="sev sev-h">HIGH</span></td><td style="font-weight:700;color:var(--amber)">£6,800</td><td>1 hr</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td style="font-weight:800;color:var(--amber)">6</td><td><strong>3 S3 buckets with public access</strong></td><td>L6</td><td><span class="sev sev-h">HIGH</span></td><td style="font-weight:700;color:var(--amber)">£5,400</td><td>5 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td>7</td><td>No rate limiting on /auth/login</td><td>L4</td><td><span class="sev sev-h">HIGH</span></td><td>£3,800</td><td>1 hr</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td>8</td><td>Reflected XSS — /search?q=</td><td>L2</td><td><span class="sev sev-h">HIGH</span></td><td>£2,900</td><td>30 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td>9</td><td>WordPress 6.3.1 outdated (3 CVEs)</td><td>L1</td><td><span class="sev sev-m">MEDIUM</span></td><td>£2,100</td><td>5 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td>10</td><td>EBS volumes unencrypted (3)</td><td>L6</td><td><span class="sev sev-m">MEDIUM</span></td><td>£1,800</td><td>30 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+                <tr><td>11</td><td>5 email addresses in data breach</td><td>L1</td><td><span class="sev sev-m">MEDIUM</span></td><td>£1,200</td><td>1 day</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">View</button></td></tr>
+                <tr><td>12</td><td>Directory listing on /uploads/</td><td>L2</td><td><span class="sev sev-m">MEDIUM</span></td><td>£800</td><td>5 min</td><td><button class="action-btn action-btn-outline" style="font-size:10px;padding:3px 8px">Fix</button></td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding-top:6px;border-top:1px solid var(--border)">
+              <span>Total exposure: <strong style="color:var(--red)">£71,500</strong> across 12 findings</span>
+              <span>Fixable in &lt;1 hour: <strong style="color:#16A34A">£43,500 (61%)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-cards" style="margin-top:8px">
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">⚡</span>
+              <span class="action-card-title">Fix the top 3 quick wins (DMARC, subdomain, S3) now</span>
+              <span class="action-card-cost">4 credits</span>
+              <button class="action-btn action-btn-primary">▶ Generate All Scripts</button>
+            </div>
+            <div class="action-card-desc">These 3 fixes take &lt;15 minutes total and eliminate £25,000 of exposure. Claude will generate exact DNS records, CLI commands, and config files.</div>
+          </div>
+        </div>
+
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">07:04 · Action executed: GET /api/findings?tenant=T-0A3F · 2,104 tokens · 1 credit used</div>
+      </div>
+    </div>
+
+    <!-- USER MESSAGE 3 -->
+    <div class="msg-user">
+      <div>
+        <div class="msg-user-bubble">Generate the fix script for the SQL injection. I want to apply it now.</div>
+        <div class="msg-user-meta"><span class="credit-used">-2 credits</span><span>07:08 · Jane Doe</span></div>
+      </div>
+    </div>
+
+    <!-- CLAUDE RESPONSE 3 with code result -->
+    <div class="msg-claude">
+      <div class="claude-avatar">✦</div>
+      <div class="msg-claude-content">
+        <div class="claude-name">SOCVault AI <span class="model-tag">claude-sonnet-4-6</span></div>
+
+        <div class="reasoning-block">
+          <div class="reasoning-header" onclick="toggleReasoning(this)">
+            <span class="reasoning-icon">🧠</span>
+            <span class="reasoning-label">Reasoning — Generating context-aware SQLi fix for FastAPI + SQLAlchemy stack</span>
+            <span class="reasoning-time">1.8s</span>
+            <span class="reasoning-toggle">▼</span>
+          </div>
+          <div class="reasoning-body hidden">
+            The L2 scan result shows the tech stack as Python/FastAPI from Wappalyzer. The vulnerable endpoint is POST /api/search with a query parameter. The most likely fix is parameterised queries via SQLAlchemy or raw psycopg2. I should also recommend input validation and a WAF rule as defence-in-depth. Let me check if they use SQLAlchemy or raw SQL from the L2 scan metadata...
+          </div>
+        </div>
+
+        <div class="claude-bubble">
+          <p>Based on your tech stack (FastAPI + SQLAlchemy detected by L2 scan), here's the exact fix for <code>POST /api/search</code>. I've included three layers of defence:</p>
+        </div>
+
+        <div class="inline-result">
+          <div class="ir-header">
+            <span style="font-size:14px">🔧</span>
+            <span class="ir-title">SQLi Remediation Script — /api/search · FastAPI/SQLAlchemy</span>
+            <span class="ir-badge">AI GENERATED</span>
+            <button style="background:rgba(255,255,255,.15);border:none;color:#9fc8b8;font-size:10px;padding:2px 8px;border-radius:6px;cursor:pointer" onclick="copyCode()">📋 Copy</button>
+          </div>
+          <div class="ir-body">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Layer 1 — Parameterised query (eliminates root cause)</div>
+            <div class="code-result"><span class="comment"># ❌ VULNERABLE — current code in /api/routes/search.py</span>
+@router.post("/api/search")
+async def search(q: str = Body(...)):
+    result = await db.execute(f"SELECT * FROM products WHERE name = '{q}'")
+
+<span class="comment"># ✅ FIXED — parameterised query</span>
+from sqlalchemy import text
+
+@router.post("/api/search")
+async def search(q: str = Body(..., min_length=1, max_length=200)):
+    <span class="comment"># Validate input first</span>
+    if not q.replace(" ", "").isalnum():
+        raise HTTPException(400, "Invalid search characters")
+    result = await db.execute(
+        text("SELECT * FROM products WHERE name ILIKE :q"),
+        {"q": f"%{q}%"}
+    )
+    return result.fetchall()</div>
+
+            <div style="font-size:11px;color:var(--muted);margin:10px 0 6px">Layer 2 — nginx WAF rule (immediate protection while deploying code fix)</div>
+            <div class="code-result"><span class="comment"># Add to /etc/nginx/conf.d/waf.conf</span>
+location /api/search {
+    if ($args ~* "(union|select|insert|drop|delete|update|exec)") {
+        return 403;
+    }
+    proxy_pass http://backend;
+}</div>
+
+            <div style="font-size:11px;color:var(--muted);margin:10px 0 6px">Layer 3 — Test the fix</div>
+            <div class="code-result"><span class="comment"># Run this to verify fix is in place</span>
+curl -X POST https://acmecorp.com/api/search   -H "Content-Type: application/json"   -d '{"q": "test''' OR 1=1--"}'
+<span class="comment"># Expected: 400 Bad Request (not 200 with data)</span></div>
+          </div>
+        </div>
+
+        <div class="action-cards" style="margin-top:8px">
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">✅</span>
+              <span class="action-card-title">Verify fix — re-run targeted L2 scan on /api/search only</span>
+              <span class="action-card-cost">2 credits</span>
+              <button class="action-btn action-btn-primary">▶ Verify Now</button>
+            </div>
+            <div class="action-card-desc">After applying the fix, run this to confirm the SQLi is closed. Scan targets /api/search only — completes in ~3 minutes.</div>
+          </div>
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-card-icon">🎫</span>
+              <span class="action-card-title">Create Jira ticket with this fix for your dev team</span>
+              <span class="action-card-cost">1 credit</span>
+              <button class="action-btn action-btn-outline">▶ Create Ticket</button>
+            </div>
+            <div class="action-card-desc">Creates a Jira ticket in project SECURITY with this fix attached, assigned to dev team.</div>
+          </div>
+        </div>
+
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">07:08 · Action executed: GET /api/findings/L2-SQLi-001/context · 3,241 tokens · 2 credits used</div>
+      </div>
+    </div>
+
+    <!-- THINKING INDICATOR (simulates typing) -->
+    <div class="msg-claude" id="thinking" style="display:none">
+      <div class="claude-avatar">✦</div>
+      <div class="msg-claude-content">
+        <div class="claude-name">SOCVault AI <span class="model-tag">claude-sonnet-4-6</span></div>
+        <div class="thinking-indicator">
+          <div class="thinking-dots">
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+          </div>
+          <span class="thinking-text" id="thinking-text">Analysing your security context…</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /messages -->
+
+  <!-- INPUT AREA -->
+  <div class="input-area">
+    <div class="input-context">
+      <span style="font-size:10px;color:var(--muted);margin-right:2px">Context:</span>
+      <div class="ctx-chip">🌐 acmecorp.com <button>×</button></div>
+      <div class="ctx-chip">🔍 Last L2 scan <button>×</button></div>
+      <div class="ctx-chip">☁️ AWS account <button>×</button></div>
+      <button class="ctx-add">+ Add context</button>
+    </div>
+    <div class="suggestion-chips">
+      <div class="sug-chip" onclick="fillInput(this)">Run L1 recon scan now</div>
+      <div class="sug-chip" onclick="fillInput(this)">Show my GDPR compliance gaps</div>
+      <div class="sug-chip" onclick="fillInput(this)">What does CVE-2024-1234 mean for me?</div>
+      <div class="sug-chip" onclick="fillInput(this)">Approve the pending malware action</div>
+      <div class="sug-chip" onclick="fillInput(this)">Generate my board security report</div>
+      <div class="sug-chip" onclick="fillInput(this)">Check if my SSL cert expires soon</div>
+      <div class="sug-chip" onclick="fillInput(this)">Show SOC alerts from last 24h</div>
+    </div>
+    <div class="input-row" style="margin-top:8px">
+      <textarea class="input-box" id="chat-input" rows="2" placeholder="Ask about your security posture, trigger a scan, get a fix script, or request a compliance report…" onkeydown="handleEnter(event)"></textarea>
+      <div class="input-actions">
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+    <div class="input-footer">
+      <span class="cost-indicator">💳 Estimated cost: <strong>1–3 credits</strong></span>
+      <span>·</span>
+      <span>247 credits remaining</span>
+      <span>·</span>
+      <span>Context: 12 findings · 12 agents · acmecorp.com</span>
+      <span style="margin-left:auto">Press <strong>Enter</strong> to send · <strong>Shift+Enter</strong> for new line</span>
+    </div>
+  </div>
+
+</div><!-- /chat-main -->
+
+<!-- RIGHT PANEL -->
+<div class="chat-right">
+
+  <div class="cr-section">
+    <div class="cr-title">Credits</div>
+    <div class="credit-card">
+      <div class="credit-lbl">Available Balance</div>
+      <div class="credit-balance">247</div>
+      <div style="font-size:10px;color:#9fc8b8">credits</div>
+      <div class="credit-bar"><div class="credit-fill" style="width:49%"></div></div>
+      <div class="credit-meta">49% remaining of 500 bundle · expires 15 Jul 2026</div>
+      <button class="buy-btn" onclick="document.getElementById('buy-modal').style.display='flex'">💳 Buy More Credits</button>
+    </div>
+  </div>
+
+  <div class="cr-divider"></div>
+
+  <div class="cr-section">
+    <div class="cr-title">Credit Bundles</div>
+    <div class="bundle-row">
+      <div class="bundle">
+        <div><div class="bundle-credits">50</div><div class="bundle-price">$5.00 · $0.10/credit</div></div>
+      </div>
+      <div class="bundle popular">
+        <div><div class="bundle-credits">200</div><div class="bundle-price">$15.00 · $0.075/credit</div></div>
+        <span class="bundle-tag">Popular</span>
+      </div>
+      <div class="bundle">
+        <div><div class="bundle-credits">500</div><div class="bundle-price">$30.00 · $0.06/credit</div></div>
+        <span class="bundle-tag" style="background:var(--purple);color:#fff">Best value</span>
+      </div>
+      <div class="bundle">
+        <div><div class="bundle-credits">2,000</div><div class="bundle-price">$99.00 · $0.05/credit</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cr-divider"></div>
+
+  <div class="cr-section">
+    <div class="cr-title">What You Can Do</div>
+    <div class="capability-list">
+      <div class="cap-item"><span class="cap-icon">💬</span><span class="cap-label">Ask any security question</span><span class="cap-cost">1 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">📊</span><span class="cap-label">Show findings / reports</span><span class="cap-cost">1 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">🔧</span><span class="cap-label">Generate fix script</span><span class="cap-cost">2 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">🔍</span><span class="cap-label">Trigger L1 recon scan</span><span class="cap-cost">3 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">🕸️</span><span class="cap-label">Trigger L2 VAPT scan</span><span class="cap-cost">5 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">📋</span><span class="cap-label">Compliance gap analysis</span><span class="cap-cost">3 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">☁️</span><span class="cap-label">Cloud posture check</span><span class="cap-cost">4 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">✅</span><span class="cap-label">Approve SOAR action</span><span class="cap-cost">2 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">📄</span><span class="cap-label">Board / exec report</span><span class="cap-cost">5 cr</span></div>
+      <div class="cap-item"><span class="cap-icon">🎫</span><span class="cap-label">Create Jira ticket</span><span class="cap-cost">1 cr</span></div>
+    </div>
+  </div>
+
+  <div class="cr-divider"></div>
+
+  <div class="cr-section" style="padding-bottom:14px">
+    <div class="cr-title">This Session</div>
+    <div class="session-stats">
+      <div class="ss-row"><span class="ss-key">Messages</span><span class="ss-val">3</span></div>
+      <div class="ss-row"><span class="ss-key">Actions triggered</span><span class="ss-val">1</span></div>
+      <div class="ss-row"><span class="ss-key">Credits used</span><span class="ss-val" style="color:var(--red)">-8</span></div>
+      <div class="ss-row"><span class="ss-key">Tokens (input)</span><span class="ss-val">7,187</span></div>
+      <div class="ss-row"><span class="ss-key">Cache hits</span><span class="ss-val" style="color:#16A34A">82%</span></div>
+      <div class="ss-row"><span class="ss-key">Findings addressed</span><span class="ss-val">12</span></div>
+    </div>
+  </div>
+
+</div><!-- /chat-right -->
+</div><!-- /layout -->
+
+<!-- BUY CREDITS MODAL -->
+<div id="buy-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px;width:440px;box-shadow:0 24px 64px rgba(0,0,0,.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:800;color:var(--gd)">Buy AI Credits</div>
+      <button onclick="document.getElementById('buy-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Credits are used each time you query the AI or trigger an action. They never expire.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      <div class="bundle" style="padding:12px 14px">
+        <div><div class="bundle-credits" style="font-size:18px">50 credits</div><div class="bundle-price">$5.00 — $0.10 per credit</div></div>
+        <button class="action-btn action-btn-outline" style="margin-left:auto">Buy</button>
+      </div>
+      <div class="bundle popular" style="padding:12px 14px">
+        <div><div class="bundle-credits" style="font-size:18px">200 credits</div><div class="bundle-price">$15.00 — $0.075 per credit · Save 25%</div></div>
+        <span class="bundle-tag">Popular</span>
+        <button class="action-btn action-btn-primary" style="margin-left:8px">Buy</button>
+      </div>
+      <div class="bundle" style="padding:12px 14px">
+        <div><div class="bundle-credits" style="font-size:18px">500 credits</div><div class="bundle-price">$30.00 — $0.06 per credit · Save 40%</div></div>
+        <button class="action-btn action-btn-outline" style="margin-left:auto">Buy</button>
+      </div>
+      <div class="bundle" style="padding:12px 14px">
+        <div><div class="bundle-credits" style="font-size:18px">2,000 credits</div><div class="bundle-price">$99.00 — $0.05 per credit · Save 50%</div></div>
+        <button class="action-btn action-btn-outline" style="margin-left:auto">Buy</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Payments processed by Stripe · VAT added for UK/EU customers · No subscription</div>
+  </div>
+</div>
+
+<script>
+function toggleReasoning(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.reasoning-toggle');
+  if(body.classList.contains('hidden')){
+    body.classList.remove('hidden');
+    toggle.style.transform = 'rotate(180deg)';
+  } else {
+    body.classList.add('hidden');
+    toggle.style.transform = 'rotate(0)';
+  }
+}
+function fillInput(chip) {
+  document.getElementById('chat-input').value = chip.textContent;
+  document.getElementById('chat-input').focus();
+}
+function handleEnter(e) {
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const val = input.value.trim();
+  if(!val) return;
+  const msgs = document.getElementById('msg-area');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg-user';
+  userMsg.innerHTML = `<div><div class="msg-user-bubble">${val}</div><div class="msg-user-meta"><span class="credit-used">-2 credits</span><span>just now · Jane Doe</span></div></div>`;
+  msgs.appendChild(userMsg);
+  input.value = '';
+  const thinking = document.getElementById('thinking');
+  thinking.style.display = 'flex';
+  msgs.scrollTop = msgs.scrollHeight;
+  const phrases = ['Reasoning through your security context…','Querying your scan history…','Generating response…'];
+  let pi = 0;
+  const iv = setInterval(() => { document.getElementById('thinking-text').textContent = phrases[pi++ % phrases.length]; }, 1200);
+  setTimeout(() => { clearInterval(iv); thinking.style.display = 'none'; msgs.scrollTop = msgs.scrollHeight; }, 3600);
+}
+function triggerAction(btn, type) {
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+  btn.style.opacity = '.7';
+  setTimeout(() => { btn.textContent = '✅ Done'; btn.style.background = '#16A34A'; }, 2000);
+}
+function showFix() { alert('Remediation script for SQL Injection — see message above.'); }
+function copyCode() {
+  const el = document.querySelector('.code-result');
+  navigator.clipboard.writeText(el.innerText).then(() => { const b = event.target; b.textContent = '✅ Copied!'; setTimeout(() => b.textContent = '📋 Copy', 2000); });
+}
+// Scroll to bottom on load
+window.addEventListener('load', () => {
+  const msgs = document.getElementById('msg-area');
+  msgs.scrollTop = msgs.scrollHeight;
+});
+</script>
+</body>
+</html>

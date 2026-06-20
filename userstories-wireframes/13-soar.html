@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — SOAR & Playbooks</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+
+/* TOPBAR */
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700;
+  padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.topbar-right .notif { color:#aaa; font-size:16px; cursor:pointer; position:relative; }
+.topbar-right .notif .dot { position:absolute; top:0; right:0; width:7px; height:7px;
+  background:#DC2626; border-radius:50%; border:1.5px solid #1B3D35; }
+
+/* SIDEBAR */
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; transition:background .15s; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.sidebar a .badge-count { margin-left:auto; background:#DC2626; color:#fff; font-size:9px;
+  font-weight:700; padding:1px 5px; border-radius:9px; }
+
+/* MAIN */
+.main { margin-left:210px; margin-top:52px; padding:22px 24px; min-height:calc(100vh - 52px); }
+
+/* STORY TAG */
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+
+/* CARDS */
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:18px; margin-bottom:16px; }
+.card-title { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:12px;
+  padding-bottom:8px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:8px; }
+.card-subtitle { font-size:10px; color:#888; margin-left:auto; }
+
+/* GRID */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
+
+/* METRIC TILES */
+.metric { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:16px;
+  text-align:center; }
+.metric .val { font-size:26px; font-weight:800; color:#1B3D35; line-height:1; }
+.metric .val.green { color:#4CC844; }
+.metric .val.red { color:#DC2626; }
+.metric .val.amber { color:#F59E0B; }
+.metric .lbl { font-size:10px; color:#888; margin-top:5px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.metric .sub { font-size:10px; color:#aaa; margin-top:3px; }
+
+/* HEALTH SCORE RING */
+.health-ring { width:110px; height:110px; border-radius:50%; margin:0 auto 8px;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  border:8px solid #4CC844; }
+.health-ring .score { font-size:28px; font-weight:800; color:#1B3D35; }
+.health-ring .lbl { font-size:9px; color:#888; text-transform:uppercase; }
+
+/* SEVERITY BADGES */
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.critical { background:#FECACA; color:#991B1B; }
+.sev.high     { background:#FED7AA; color:#9A3412; }
+.sev.medium   { background:#FEF3C7; color:#92400E; }
+.sev.low      { background:#D1FAE5; color:#065F46; }
+.sev.info     { background:#DBEAFE; color:#1E40AF; }
+.sev.passed   { background:#D1FAE5; color:#065F46; }
+
+/* STATUS BADGES */
+.status { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.status.open       { background:#FED7AA; color:#9A3412; }
+.status.progress   { background:#DBEAFE; color:#1E40AF; }
+.status.resolved   { background:#D1FAE5; color:#065F46; }
+.status.blocked    { background:#FECACA; color:#991B1B; }
+.status.active     { background:#D1FAE5; color:#065F46; }
+.status.inactive   { background:#F3F4F6; color:#6B7280; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th { background:#1B3D35; color:#fff; font-size:11px; font-weight:600;
+  padding:9px 12px; text-align:left; }
+thead th:first-child { border-radius:6px 0 0 0; }
+thead th:last-child  { border-radius:0 6px 0 0; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody tr:hover { background:#E8F0E8; }
+tbody td { padding:8px 12px; border-bottom:1px solid #e0e8e0; color:#444; vertical-align:middle; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-secondary { background:#1B3D35; color:#fff; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-danger { background:#DC2626; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+
+/* FORMS */
+.form-group { margin-bottom:14px; }
+.form-label { font-size:11px; font-weight:600; color:#1B3D35; margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:8px 10px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; color:#222; background:#fff; }
+.form-input:focus { outline:none; border-color:#4CC844; }
+.form-hint { font-size:10px; color:#888; margin-top:3px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* TABS */
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:16px; }
+.tab { padding:8px 16px; font-size:12px; font-weight:600; color:#888; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+
+/* PROGRESS BAR */
+.progress-bar { height:8px; background:#e0e8e0; border-radius:4px; overflow:hidden; margin:4px 0; }
+.progress-fill { height:100%; border-radius:4px; background:#4CC844; }
+.progress-fill.red { background:#DC2626; }
+.progress-fill.amber { background:#F59E0B; }
+
+/* ALERT STRIP */
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; }
+.alert-strip.critical { background:#FEF2F2; border-left:4px solid #DC2626; color:#991B1B; }
+.alert-strip.high     { background:#FFF7ED; border-left:4px solid #F59E0B; color:#92400E; }
+.alert-strip.info     { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success  { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+
+/* STEP */
+.step-list { counter-reset:step; }
+.step-item { display:flex; align-items:flex-start; gap:12px; padding:8px 0;
+  border-bottom:1px solid #f0f0f0; }
+.step-num { min-width:22px; height:22px; border-radius:50%; background:#1B3D35; color:#4CC844;
+  font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.step-num.done { background:#4CC844; color:#1B3D35; }
+.step-num.running { background:#F59E0B; color:#fff; }
+.step-text { font-size:12px; color:#444; }
+.step-status { margin-left:auto; font-size:10px; color:#888; }
+
+/* SCAN LAYER ROW */
+.layer-row { display:flex; align-items:center; padding:10px 14px; background:#fff;
+  border:1px solid #e0e8e0; border-radius:6px; margin-bottom:6px; gap:12px; }
+.layer-badge { min-width:28px; height:28px; border-radius:6px; background:#1B3D35; color:#4CC844;
+  font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.layer-name { font-size:12px; font-weight:600; color:#1B3D35; flex:1; }
+.layer-desc { font-size:11px; color:#888; flex:2; }
+
+/* PAGE TITLE */
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub   { font-size:12px; color:#888; margin-bottom:18px; }
+
+/* TOOLBAR */
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.search-box { padding:7px 12px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; width:200px; }
+
+/* EMPTY STATE */
+.empty { text-align:center; padding:48px 0; color:#aaa; }
+.empty .ico { font-size:36px; margin-bottom:10px; }
+.empty p { font-size:13px; }
+
+/* PAGINATION */
+.pagination { display:flex; gap:4px; margin-top:12px; }
+.page-btn { padding:5px 10px; border:1px solid #d1d5db; border-radius:4px;
+  font-size:11px; cursor:pointer; background:#fff; }
+.page-btn.active { background:#1B3D35; color:#fff; border-color:#1B3D35; }
+
+/* CHECKLIST */
+.checklist { list-style:none; }
+.checklist li { padding:5px 0; font-size:12px; display:flex; align-items:center; gap:8px; }
+.checklist li::before { content:'✓'; color:#4CC844; font-weight:700; }
+.checklist li.fail::before { content:'✗'; color:#DC2626; }
+.checklist li.warn::before { content:'⚠'; color:#F59E0B; }
+
+/* FINANCIAL BOX */
+.fin-box { background:linear-gradient(135deg,#1B3D35,#2a5a4a); border-radius:10px;
+  padding:18px; color:#fff; margin-bottom:16px; }
+.fin-box .amount { font-size:32px; font-weight:800; color:#4CC844; }
+.fin-box .label  { font-size:11px; color:#b8d4c8; margin-top:4px; }
+
+/* TIMELINE */
+.timeline { border-left:2px solid #4CC844; margin-left:10px; padding-left:18px; }
+.timeline-item { position:relative; padding-bottom:16px; }
+.timeline-item::before { content:''; position:absolute; left:-23px; top:4px;
+  width:8px; height:8px; border-radius:50%; background:#4CC844; }
+.timeline-dot-red::before { background:#DC2626 !important; }
+.timeline-time { font-size:10px; color:#888; }
+.timeline-text { font-size:12px; color:#444; margin-top:2px; }
+
+/* WIREFRAME NOTE */
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px;
+  padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+
+/* MODAL OVERLAY */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200;
+  display:flex; align-items:center; justify-content:center; }
+.modal { background:#fff; border-radius:10px; padding:24px; width:480px; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.modal-title { font-size:15px; font-weight:700; color:#1B3D35; margin-bottom:14px; }
+
+/* APPROVAL QUEUE */
+.approval-card { background:#fff; border:1px solid #e0e8e0; border-radius:8px;
+  padding:14px; margin-bottom:10px; border-left:4px solid #DC2626; }
+.approval-card.amber { border-left-color:#F59E0B; }
+
+/* CODE BLOCK */
+.code-block { background:#1e2d2a; border-radius:6px; padding:12px 14px;
+  font-family:'Courier New',monospace; font-size:11px; color:#4CC844; overflow-x:auto; margin:8px 0; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">SOC Pro</span>
+    <div class="notif">🔔<span class="dot"></span></div>
+    <div class="avatar">JD</div>
+  </div>
+</div>
+<div class="sidebar"><div class="sidebar-section">Overview</div><a href="02-dashboard.html"><span class="ico">🏠</span>Dashboard</a><a href="17-settings.html"><span class="ico">🌐</span>Domains & Assets</a><div class="sidebar-section">Scan Layers</div><a href="03-l1-recon.html"><span class="ico">🔍</span>L1 — Free Recon</a><a href="05-l2-web.html"><span class="ico">🕸️</span>L2 — Web AppSec</a><a href="06-l3-mobile.html"><span class="ico">📱</span>L3 — Mobile</a><a href="07-l4-api.html"><span class="ico">⚡</span>L4 — API</a><a href="08-l5-compliance.html"><span class="ico">📋</span>L5 — Compliance</a><a href="09-l6-cloud.html"><span class="ico">☁️</span>L6 — Cloud</a><a href="10-l7-soc.html"><span class="ico">🛡️</span>L7 — SOC/SIEM<span class="badge-count">3</span></a><a href="11-l8-malware.html"><span class="ico">🦠</span>L8 — Malware<span class="badge-count">1</span></a><div class="sidebar-section">Platform</div><a href="13-soar.html" class="active"><span class="ico">⚙️</span>SOAR & Playbooks</a><a href="04-l1-report.html"><span class="ico">🤖</span>AI Risk Report</a><a href="14-billing.html"><span class="ico">💳</span>Billing</a><a href="15-msp-portal.html"><span class="ico">🏢</span>MSP Portal</a><a href="16-notifications.html"><span class="ico">🔔</span>Notifications<span class="badge-count">5</span></a><a href="17-settings.html"><span class="ico">⚙️</span>Settings</a><a href="18-audit-log.html"><span class="ico">📜</span>Audit Log</a><a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a></div>
+<div class="main">
+<div style="margin-bottom:10px"><span class="story-ref">US-061</span><span class="story-ref">US-062</span><span class="story-ref">US-063</span><span class="story-ref">US-064</span><span class="story-ref">US-065</span><span class="story-ref">US-098</span><span class="story-ref">US-101</span><span class="story-ref">US-108</span><span class="story-ref">US-118</span></div>
+
+<div class="page-title">SOAR &amp; Automation Playbooks</div>
+<div class="page-sub">10 pre-built playbooks · 3 custom playbooks · 47 executions this month</div>
+
+<div class="tabs">
+  <div class="tab active">Pre-built Playbooks</div>
+  <div class="tab">Custom Playbooks</div>
+  <div class="tab">Execution Log</div>
+  <div class="tab">Integrations</div>
+</div>
+
+<div class="toolbar">
+  <select class="form-input" style="width:150px;padding:6px"><option>All Categories</option></select>
+  <div class="spacer"></div>
+  <button class="btn btn-primary btn-sm">+ Create Playbook</button>
+</div>
+
+<div class="card">
+  <div class="card-title">Pre-Built Playbooks <span class="card-subtitle">US-061, US-062</span></div>
+  <table>
+    <thead><tr><th>Playbook</th><th>Trigger</th><th>Actions</th><th>MITRE</th><th>Executions</th><th>Status</th><th>Toggle</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Brute Force IP Block</strong><br><span style="font-size:10px;color:#888">Auto-blocks attacking IP at firewall level</span></td>
+        <td><code style="font-size:10px">&gt;5 failed logins / 60s</code></td>
+        <td>Block IP · Log · Notify</td>
+        <td><span style="font-size:10px">T1110</span></td>
+        <td>18</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>Malware Auto-Quarantine</strong><br><span style="font-size:10px;color:#888">Quarantines isolated endpoints (conf ≥95%)</span></td>
+        <td><code style="font-size:10px">L8 detection + conf≥95%</code></td>
+        <td>Quarantine · Incident report · Notify</td>
+        <td><span style="font-size:10px">T1204</span></td>
+        <td>3</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>Ransomware Containment</strong><br><span style="font-size:10px;color:#888">Isolates endpoint + pages on-call</span></td>
+        <td><code style="font-size:10px">Ransomware YARA match</code></td>
+        <td>Isolate · PagerDuty · Snapshot</td>
+        <td><span style="font-size:10px">T1486</span></td>
+        <td>0</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>Port Scan Detection</strong><br><span style="font-size:10px;color:#888">Alerts on external port scanning</span></td>
+        <td><code style="font-size:10px">Rule 1002 — port scan</code></td>
+        <td>Alert · Threat intel lookup</td>
+        <td><span style="font-size:10px">T1046</span></td>
+        <td>12</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>FIM Critical Change</strong><br><span style="font-size:10px;color:#888">/etc/passwd or /etc/sudoers modified</span></td>
+        <td><code style="font-size:10px">Rule 550 — /etc/ change</code></td>
+        <td>Alert · Snapshot · Jira ticket</td>
+        <td><span style="font-size:10px">T1098</span></td>
+        <td>4</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>Unusual Login Time</strong></td>
+        <td><code style="font-size:10px">Login outside 08:00–20:00</code></td>
+        <td>Notify admin · MFA challenge</td>
+        <td><span style="font-size:10px">T1078</span></td>
+        <td>7</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+      <tr>
+        <td><strong>Privilege Escalation Alert</strong></td>
+        <td><code style="font-size:10px">sudo su / new root session</code></td>
+        <td>Alert · Log · Review queue</td>
+        <td><span style="font-size:10px">T1548</span></td>
+        <td>3</td>
+        <td><span class="status active">Active</span></td>
+        <td><button class="btn btn-outline btn-xs">Disable</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">Integrations <span class="card-subtitle">US-064, US-065</span></div>
+  <div class="grid-3">
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">💬</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">Slack</div>
+      <div style="font-size:10px;color:#4CC844;margin:4px 0">✓ Connected</div>
+      <div style="font-size:10px;color:#888">#security-alerts channel</div>
+      <button class="btn btn-outline btn-xs" style="margin-top:6px">Configure</button>
+    </div>
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🎫</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">Jira Cloud</div>
+      <div style="font-size:10px;color:#4CC844;margin:4px 0">✓ Connected</div>
+      <div style="font-size:10px;color:#888">Project: SECURITY</div>
+      <button class="btn btn-outline btn-xs" style="margin-top:6px">Configure</button>
+    </div>
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🚨</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">PagerDuty</div>
+      <div style="font-size:10px;color:#888;margin:4px 0">Not connected</div>
+      <button class="btn btn-primary btn-xs" style="margin-top:6px">Connect</button>
+    </div>
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🟦</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">MS Teams</div>
+      <div style="font-size:10px;color:#888;margin:4px 0">Not connected</div>
+      <button class="btn btn-primary btn-xs" style="margin-top:6px">Connect</button>
+    </div>
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🔧</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">ServiceNow</div>
+      <div style="font-size:10px;color:#888;margin:4px 0">Not connected</div>
+      <button class="btn btn-primary btn-xs" style="margin-top:6px">Connect</button>
+    </div>
+    <div style="border:1px solid #e0e8e0;border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">📱</div>
+      <div style="font-size:12px;font-weight:700;color:#1B3D35">SMS (Twilio)</div>
+      <div style="font-size:10px;color:#888;margin:4px 0">Not connected</div>
+      <button class="btn btn-primary btn-xs" style="margin-top:6px">Connect</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

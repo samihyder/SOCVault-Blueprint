@@ -1,0 +1,46 @@
+name: QA — Staging
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'tests/qa/**'
+      - 'collections/**'
+      - 'infra/**'
+
+jobs:
+  qa-staging:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL || 'https://api-staging.socvault.io/api/v1' }}
+      STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+      STAGING_TEST_PHONE: ${{ secrets.STAGING_TEST_PHONE }}
+      STAGING_TEST_DOMAIN: ${{ secrets.STAGING_TEST_DOMAIN }}
+      STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install QA dependencies
+        run: pip install -r tests/qa/requirements.txt
+
+      - name: Run staging QA suite
+        run: |
+          chmod +x tests/qa/run-staging-qa.sh
+          ./tests/qa/run-staging-qa.sh --bruno
+
+      - name: Upload QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-logs
+          path: /tmp/socvault-qa/

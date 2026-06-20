@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault — Security Dashboard</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --green-dark:#1B3D35;
+  --green-mid:#2a5a4a;
+  --green-lime:#4CC844;
+  --green-light:#E8F5E8;
+  --white:#FFFFFF;
+  --grey-bg:#F1F5F2;
+  --grey-card:#FFFFFF;
+  --grey-border:#E0EAE4;
+  --grey-text:#3D4F47;
+  --grey-muted:#7A9088;
+  --red:#DC2626;
+  --red-light:#FEF2F2;
+  --amber:#F59E0B;
+  --amber-light:#FFFBEB;
+  --blue:#2563EB;
+  --blue-light:#EFF6FF;
+  --purple:#7C3AED;
+  --shadow-sm:0 1px 3px rgba(27,61,53,.08),0 1px 2px rgba(27,61,53,.06);
+  --shadow-md:0 4px 16px rgba(27,61,53,.10),0 2px 8px rgba(27,61,53,.06);
+  --shadow-lg:0 8px 32px rgba(27,61,53,.14),0 4px 16px rgba(27,61,53,.08);
+  --radius:10px;
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--grey-bg);
+  color:var(--grey-text);font-size:13px;min-height:100vh;}
+
+/* ── TOPBAR ───────────────────────────────────────────────────────────── */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;
+  background:var(--green-dark);
+  display:flex;align-items:center;padding:0 20px;gap:16px;z-index:200;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.tb-logo{font-size:18px;font-weight:800;color:var(--green-lime);letter-spacing:.3px;
+  display:flex;align-items:center;gap:10px;}
+.tb-logo-sub{font-size:11px;font-weight:400;color:#9fc8b8;letter-spacing:.2px;}
+.tb-pill{background:rgba(76,200,68,.18);border:1px solid rgba(76,200,68,.35);
+  color:var(--green-lime);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;
+  display:flex;align-items:center;gap:5px;}
+.tb-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green-lime);
+  animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+.tb-spacer{flex:1;}
+.tb-search{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:7px 14px;color:#fff;font-size:12px;width:220px;outline:none;}
+.tb-search::placeholder{color:rgba(255,255,255,.4);}
+.tb-icon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;
+  position:relative;border:1px solid rgba(255,255,255,.1);}
+.tb-icon .badge{position:absolute;top:-3px;right:-3px;width:16px;height:16px;
+  background:var(--red);border-radius:50%;font-size:9px;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--green-dark);}
+.tb-avatar{width:36px;height:36px;border-radius:9px;background:var(--green-lime);
+  display:flex;align-items:center;justify-content:center;color:var(--green-dark);
+  font-size:12px;font-weight:800;cursor:pointer;}
+.tb-user{color:#fff;font-size:12px;}
+.tb-user span{display:block;font-size:10px;color:#9fc8b8;}
+
+/* ── SIDEBAR ──────────────────────────────────────────────────────────── */
+.sidebar{position:fixed;top:56px;left:0;bottom:0;width:216px;
+  background:var(--green-dark);overflow-y:auto;padding:8px 0 16px;
+  display:flex;flex-direction:column;gap:0;}
+.sb-section{font-size:9px;font-weight:700;color:var(--green-lime);letter-spacing:1.8px;
+  padding:16px 16px 5px;text-transform:uppercase;opacity:.7;}
+.sb-link{display:flex;align-items:center;gap:9px;padding:8px 14px;
+  color:#b5cec7;font-size:12px;font-weight:500;cursor:pointer;
+  border-left:3px solid transparent;transition:all .15s;text-decoration:none;}
+.sb-link:hover{background:rgba(76,200,68,.1);color:#fff;border-left-color:rgba(76,200,68,.4);}
+.sb-link.active{background:rgba(76,200,68,.15);color:#fff;border-left-color:var(--green-lime);}
+.sb-icon{font-size:14px;width:20px;text-align:center;opacity:.85;}
+.sb-count{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:8px;min-width:18px;text-align:center;}
+.sb-count.amber{background:var(--amber);}
+.sb-count.green{background:#16A34A;}
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────────────── */
+.main{margin-left:216px;margin-top:56px;padding:20px 22px;min-height:calc(100vh - 56px);}
+
+/* ── HEADER BANNER ────────────────────────────────────────────────────── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:20px;}
+.page-header-left h1{font-size:20px;font-weight:800;color:var(--green-dark);}
+.page-header-left p{font-size:12px;color:var(--grey-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-primary{background:var(--green-lime);color:var(--green-dark);}
+.btn-primary:hover{background:#3db838;}
+.btn-secondary{background:var(--green-dark);color:#fff;}
+.btn-outline{background:transparent;color:var(--green-dark);border:1.5px solid var(--green-border,#c8ddd5);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.btn-xs{padding:4px 9px;font-size:10px;}
+.last-updated{font-size:11px;color:var(--grey-muted);
+  display:flex;align-items:center;gap:5px;
+  background:#fff;border:1px solid var(--grey-border);border-radius:8px;padding:6px 12px;}
+.last-updated .live-dot{width:7px;height:7px;background:var(--green-lime);border-radius:50%;
+  animation:pulse 2s infinite;}
+
+/* ── KPI TILES ────────────────────────────────────────────────────────── */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px;}
+.kpi{background:#fff;border-radius:var(--radius);border:1px solid var(--grey-border);
+  padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.red::before{background:var(--red);}
+.kpi.amber::before{background:var(--amber);}
+.kpi.green::before{background:var(--green-lime);}
+.kpi.blue::before{background:var(--blue);}
+.kpi.purple::before{background:var(--purple);}
+.kpi.teal::before{background:#0D9488;}
+.kpi-label{font-size:10px;font-weight:600;color:var(--grey-muted);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:6px;}
+.kpi-value{font-size:24px;font-weight:800;color:var(--green-dark);line-height:1.1;}
+.kpi-value.red{color:var(--red);}
+.kpi-value.amber{color:var(--amber);}
+.kpi-value.green{color:#16A34A;}
+.kpi-value.blue{color:var(--blue);}
+.kpi-sub{font-size:10px;color:var(--grey-muted);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.kpi-delta{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;}
+.kpi-delta.up{color:#16A34A;background:#DCFCE7;}
+.kpi-delta.down{color:var(--red);background:#FEE2E2;}
+.kpi-spark{margin-top:8px;height:28px;}
+
+/* ── CARD ─────────────────────────────────────────────────────────────── */
+.card{background:#fff;border-radius:var(--radius);border:1px solid var(--grey-border);
+  box-shadow:var(--shadow-sm);overflow:hidden;}
+.card-header{display:flex;align-items:center;padding:14px 16px 0;gap:8px;}
+.card-title{font-size:13px;font-weight:700;color:var(--green-dark);flex:1;}
+.card-title small{font-size:10px;font-weight:400;color:var(--grey-muted);margin-left:4px;}
+.card-body{padding:14px 16px;}
+.card-footer{padding:10px 16px;background:var(--grey-bg);border-top:1px solid var(--grey-border);
+  font-size:11px;color:var(--grey-muted);display:flex;align-items:center;gap:8px;}
+
+/* ── GRID LAYOUTS ─────────────────────────────────────────────────────── */
+.grid-3-2{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px;}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* ── HEALTH SCORE ─────────────────────────────────────────────────────── */
+.health-wrap{display:flex;align-items:center;gap:20px;padding:14px 16px;}
+.health-donut{position:relative;width:110px;height:110px;flex-shrink:0;}
+.health-donut svg{transform:rotate(-90deg);}
+.health-donut-label{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;}
+.health-score-num{font-size:26px;font-weight:800;color:var(--green-dark);}
+.health-score-sub{font-size:9px;font-weight:600;color:var(--grey-muted);text-transform:uppercase;}
+.health-meta{flex:1;}
+.health-grade{font-size:28px;font-weight:800;color:var(--amber);margin-bottom:4px;}
+.health-desc{font-size:11px;color:var(--grey-muted);line-height:1.5;margin-bottom:10px;}
+.health-bars .hb-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.hb-label{font-size:10px;color:var(--grey-muted);width:60px;flex-shrink:0;}
+.hb-bar{flex:1;height:6px;background:#e8ede8;border-radius:3px;overflow:hidden;}
+.hb-fill{height:100%;border-radius:3px;}
+.hb-val{font-size:10px;font-weight:700;color:var(--green-dark);width:28px;text-align:right;}
+
+/* ── LAYER COVERAGE ───────────────────────────────────────────────────── */
+.layer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;}
+.layer-tile{border-radius:8px;padding:10px 12px;border:1px solid var(--grey-border);
+  display:flex;align-items:center;gap:10px;transition:box-shadow .15s;}
+.layer-tile:hover{box-shadow:var(--shadow-md);}
+.layer-badge{width:32px;height:32px;border-radius:7px;background:var(--green-dark);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
+  color:var(--green-lime);flex-shrink:0;}
+.layer-info{flex:1;min-width:0;}
+.layer-name{font-size:11px;font-weight:700;color:var(--green-dark);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
+.layer-stat{font-size:10px;color:var(--grey-muted);margin-top:1px;}
+.layer-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ld-green{background:var(--green-lime);}
+.ld-amber{background:var(--amber);}
+.ld-red{background:var(--red);}
+.ld-grey{background:#ccc;}
+
+/* ── FINDINGS TABLE ────────────────────────────────────────────────────── */
+.findings-table{width:100%;border-collapse:collapse;}
+.findings-table th{font-size:10px;font-weight:700;color:var(--grey-muted);
+  text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;
+  background:var(--grey-bg);border-bottom:1px solid var(--grey-border);text-align:left;}
+.findings-table td{padding:9px 12px;border-bottom:1px solid #f4f7f5;vertical-align:middle;}
+.findings-table tr:last-child td{border-bottom:none;}
+.findings-table tr:hover td{background:#FAFCFA;}
+.finding-name{font-size:12px;font-weight:600;color:var(--green-dark);}
+.finding-meta{font-size:10px;color:var(--grey-muted);margin-top:1px;}
+
+/* ── SEVERITY PILLS ───────────────────────────────────────────────────── */
+.sev{display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px;}
+.sev::before{content:'';width:5px;height:5px;border-radius:50%;}
+.sev-critical{background:#FEE2E2;color:#991B1B;}.sev-critical::before{background:#DC2626;}
+.sev-high{background:#FEF3C7;color:#92400E;}.sev-high::before{background:#F59E0B;}
+.sev-medium{background:#DBEAFE;color:#1E40AF;}.sev-medium::before{background:#3B82F6;}
+.sev-low{background:#D1FAE5;color:#065F46;}.sev-low::before{background:#10B981;}
+.sev-info{background:#F3E8FF;color:#6B21A8;}.sev-info::before{background:#9333EA;}
+
+/* ── STATUS PILLS ─────────────────────────────────────────────────────── */
+.status{display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.st-open{background:#FEE2E2;color:#991B1B;}
+.st-progress{background:#DBEAFE;color:#1E40AF;}
+.st-resolved{background:#D1FAE5;color:#065F46;}
+.st-live{background:#D1FAE5;color:#065F46;}
+.st-blocked{background:#FEE2E2;color:#991B1B;}
+.st-action{background:#FEF3C7;color:#92400E;}
+
+/* ── SOC ALERT FEED ────────────────────────────────────────────────────── */
+.alert-feed{display:flex;flex-direction:column;gap:8px;padding:14px 16px;}
+.alert-item{border-radius:8px;padding:10px 12px;border-left:3px solid;
+  background:#fff;border:1px solid var(--grey-border);border-left:3px solid;}
+.alert-item.critical{border-left-color:var(--red);background:#FFFAFA;}
+.alert-item.high{border-left-color:var(--amber);background:#FFFDF7;}
+.alert-item.medium{border-left-color:var(--blue);background:#FAFBFF;}
+.alert-item.resolved{border-left-color:var(--green-lime);background:#FAFFFE;}
+.alert-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.alert-title{font-size:12px;font-weight:600;color:var(--green-dark);flex:1;}
+.alert-time{font-size:10px;color:var(--grey-muted);}
+.alert-body{font-size:11px;color:var(--grey-muted);margin-bottom:6px;line-height:1.4;}
+.alert-actions{display:flex;gap:5px;align-items:center;}
+.alert-agent{font-size:10px;background:var(--grey-bg);border-radius:4px;padding:2px 7px;
+  color:var(--grey-muted);font-family:monospace;}
+
+/* ── FINANCIAL RISK ────────────────────────────────────────────────────── */
+.fin-hero{background:linear-gradient(135deg,var(--green-dark) 0%,#2a5a4a 100%);
+  border-radius:var(--radius);padding:20px;color:#fff;position:relative;overflow:hidden;}
+.fin-hero::after{content:'£';position:absolute;right:-10px;top:-20px;font-size:120px;
+  font-weight:800;color:rgba(76,200,68,.08);pointer-events:none;}
+.fin-total{font-size:36px;font-weight:800;color:var(--green-lime);line-height:1;}
+.fin-label{font-size:11px;color:#9fc8b8;margin-bottom:4px;}
+.fin-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;
+  border-top:1px solid rgba(255,255,255,.12);padding-top:14px;}
+.fin-item-val{font-size:16px;font-weight:800;color:var(--green-lime);}
+.fin-item-lbl{font-size:10px;color:#9fc8b8;margin-top:2px;}
+
+/* ── COMPLIANCE GAUGES ─────────────────────────────────────────────────── */
+.compliance-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  padding:14px 16px;}
+.compliance-tile{text-align:center;}
+.compliance-ring{position:relative;width:64px;height:64px;margin:0 auto 6px;}
+.compliance-ring svg{transform:rotate(-90deg);}
+.compliance-pct{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:800;color:var(--green-dark);}
+.compliance-name{font-size:10px;font-weight:600;color:var(--grey-muted);}
+.compliance-change{font-size:9px;margin-top:2px;}
+.c-up{color:#16A34A;}.c-down{color:var(--red);}
+
+/* ── TREND CHART ───────────────────────────────────────────────────────── */
+.trend-wrap{padding:14px 16px 0;}
+.trend-legend{display:flex;gap:14px;font-size:10px;color:var(--grey-muted);margin-bottom:10px;}
+.tl-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+
+/* ── ACTIVITY TIMELINE ─────────────────────────────────────────────────── */
+.timeline{padding:14px 16px;display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:15px;top:28px;
+  bottom:0;width:1px;background:var(--grey-border);}
+.tl-icon{width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;}
+.tl-icon.red{background:#FEE2E2;}
+.tl-icon.amber{background:#FEF3C7;}
+.tl-icon.green{background:#D1FAE5;}
+.tl-icon.blue{background:#DBEAFE;}
+.tl-icon.grey{background:var(--grey-bg);}
+.tl-content{flex:1;}
+.tl-title{font-size:12px;font-weight:600;color:var(--green-dark);}
+.tl-desc{font-size:11px;color:var(--grey-muted);margin-top:2px;line-height:1.4;}
+.tl-meta{font-size:10px;color:var(--grey-muted);margin-top:3px;
+  display:flex;align-items:center;gap:6px;}
+.tl-time{font-size:10px;color:var(--grey-muted);}
+
+/* ── TOP RISKS ─────────────────────────────────────────────────────────── */
+.risk-item{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  border-bottom:1px solid var(--grey-border);}
+.risk-item:last-child{border-bottom:none;}
+.risk-rank{width:22px;height:22px;border-radius:6px;background:var(--grey-bg);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+  color:var(--grey-muted);flex-shrink:0;}
+.risk-rank.r1{background:#FEE2E2;color:#991B1B;}
+.risk-rank.r2{background:#FEF3C7;color:#92400E;}
+.risk-rank.r3{background:#FEF3C7;color:#92400E;}
+.risk-info{flex:1;}
+.risk-name{font-size:12px;font-weight:600;color:var(--green-dark);}
+.risk-meta{font-size:10px;color:var(--grey-muted);margin-top:1px;}
+.risk-fin{font-size:13px;font-weight:800;color:var(--red);}
+.risk-fin small{font-size:9px;font-weight:400;color:var(--grey-muted);display:block;}
+
+/* ── AI USAGE ──────────────────────────────────────────────────────────── */
+.ai-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;}
+.ai-stat{background:var(--grey-bg);border-radius:8px;padding:10px 12px;
+  border:1px solid var(--grey-border);}
+.ai-stat-val{font-size:18px;font-weight:800;color:var(--green-dark);}
+.ai-stat-lbl{font-size:10px;color:var(--grey-muted);margin-top:2px;}
+.ai-model{padding:14px 16px;border-top:1px solid var(--grey-border);}
+.ai-model-row{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;padding:4px 0;border-bottom:1px dashed var(--grey-border);}
+.ai-model-row:last-child{border-bottom:none;}
+.ai-model-key{color:var(--grey-muted);}
+.ai-model-val{font-weight:600;color:var(--green-dark);}
+
+/* ── SCAN PROGRESS MINI ────────────────────────────────────────────────── */
+.scan-mini{padding:14px 16px;}
+.scan-row{display:flex;align-items:center;gap:8px;padding:5px 0;
+  border-bottom:1px solid var(--grey-border);}
+.scan-row:last-child{border-bottom:none;}
+.scan-layer{font-size:10px;font-weight:700;color:#fff;background:var(--green-dark);
+  border-radius:4px;padding:2px 6px;flex-shrink:0;width:28px;text-align:center;}
+.scan-name{font-size:11px;font-weight:600;color:var(--green-dark);width:90px;flex-shrink:0;}
+.scan-bar{flex:1;height:6px;background:#e8ede8;border-radius:3px;overflow:hidden;}
+.scan-fill{height:100%;border-radius:3px;background:var(--green-lime);}
+.scan-fill.r{background:var(--red);}
+.scan-fill.a{background:var(--amber);}
+.scan-fill.b{background:#94A3B8;}
+.scan-count{font-size:10px;font-weight:700;color:var(--grey-muted);width:60px;text-align:right;}
+
+/* ── SECTION DIVIDER ───────────────────────────────────────────────────── */
+.section-label{font-size:11px;font-weight:700;color:var(--grey-muted);
+  text-transform:uppercase;letter-spacing:.8px;
+  margin-bottom:10px;margin-top:4px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--grey-border);}
+
+/* ── SCROLLBAR ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(27,61,53,.2);border-radius:3px;}
+.story-ref{display:inline-block;font-size:9px;font-weight:700;background:#E8F0E8;color:#1B3D35;padding:2px 6px;border-radius:4px;margin:0 2px 2px 0;border:1px solid #b8d4c8;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ TOPBAR ══════════════════════════════ -->
+<div class="topbar">
+  <div class="tb-logo">
+    🛡️ SOCVault
+    <span class="tb-logo-sub">Unified AI-Enabled Cybersecurity</span>
+  </div>
+  <div class="tb-pill"><span class="dot"></span> SOC LIVE</div>
+  <div class="tb-spacer"></div>
+  <input class="tb-search" placeholder="🔍  Search assets, findings, CVEs…">
+  <div class="tb-icon" title="Notifications">🔔<div class="badge">5</div></div>
+  <div class="tb-icon" title="Help">❓</div>
+  <div class="tb-avatar" title="Jane Doe">JD</div>
+  <div class="tb-user">Jane Doe <span>Admin · Acme Corp</span></div>
+</div>
+
+<!-- ═══════════════════════════════ SIDEBAR ═════════════════════════════ -->
+<div class="sidebar">
+  <div class="sb-section">Overview</div>
+  <a class="sb-link active" href="02-dashboard.html"><span class="sb-icon">🏠</span>Dashboard</a>
+  <a class="sb-link" href="00-index.html"><span class="sb-icon">📋</span>All Wireframes</a>
+
+  <div class="sb-section">Scan Layers</div>
+  <a class="sb-link" href="03-l1-recon.html"><span class="sb-icon">🔍</span>L1 — Free Recon</a>
+  <a class="sb-link" href="05-l2-web.html"><span class="sb-icon">🕸️</span>L2 — Web AppSec</a>
+  <a class="sb-link" href="06-l3-mobile.html"><span class="sb-icon">📱</span>L3 — Mobile</a>
+  <a class="sb-link" href="07-l4-api.html"><span class="sb-icon">⚡</span>L4 — API</a>
+  <a class="sb-link" href="08-l5-compliance.html"><span class="sb-icon">📋</span>L5 — Compliance</a>
+  <a class="sb-link" href="09-l6-cloud.html"><span class="sb-icon">☁️</span>L6 — Cloud</a>
+  <a class="sb-link" href="10-l7-soc.html"><span class="sb-icon">🛡️</span>L7 — SOC / SIEM <span class="sb-count">3</span></a>
+  <a class="sb-link" href="11-l8-malware.html"><span class="sb-icon">🦠</span>L8 — Malware D&amp;R <span class="sb-count">1</span></a>
+  <a class="sb-link" href="20-l9-ai-scan.html"><span class="sb-icon">✦</span>L9 — AI Agent</a>
+
+  <div class="sb-section">Platform</div>
+  <a class="sb-link" href="12-ai-chat.html"><span class="sb-icon">💬</span>AI Chat</a>
+  <a class="sb-link" href="13-soar.html"><span class="sb-icon">⚙️</span>SOAR &amp; Playbooks</a>
+  <a class="sb-link" href="04-l1-report.html"><span class="sb-icon">🤖</span>AI Risk Report</a>
+  <a class="sb-link" href="14-billing.html"><span class="sb-icon">💳</span>Billing</a>
+  <a class="sb-link" href="15-msp-portal.html"><span class="sb-icon">🏢</span>MSP Portal</a>
+  <a class="sb-link" href="16-notifications.html"><span class="sb-icon">🔔</span>Notifications <span class="sb-count amber">5</span></a>
+  <a class="sb-link" href="17-settings.html"><span class="sb-icon">⚙️</span>Settings</a>
+  <a class="sb-link" href="18-audit-log.html"><span class="sb-icon">📜</span>Audit Log</a>
+  <a class="sb-link" href="19-admin.html"><span class="sb-icon">🔧</span>Admin Console</a>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
+<div class="main">
+
+<div style="margin-bottom:10px"><span class="story-ref">US-066</span><span class="story-ref">US-068</span><span class="story-ref">US-069</span><span class="story-ref">US-070</span><span class="story-ref">US-071</span><span class="story-ref">US-111</span><span class="story-ref">US-119</span></div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Security Dashboard</h1>
+      <p>acmecorp.com · SOC Pro · 8 layers active · Last scan completed 07:02 today</p>
+    </div>
+    <div class="page-header-actions">
+      <div class="last-updated"><span class="live-dot"></span> Live · Updated 07:14:52</div>
+      <button class="btn btn-outline btn-sm">⬇ Export Report</button>
+      <button class="btn btn-primary btn-sm">🔍 Run Full Scan</button>
+    </div>
+  </div>
+
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header"><div class="card-title">Industry Benchmark <small>US-111, FR-099</small></div></div>
+    <div class="card-body" style="font-size:12px;color:#3D4F47">Your score <strong>68</strong> vs <strong>61</strong> average for Financial Services (50–200 employees). <span style="color:#16A34A">Top quartile: 74+</span>. <label style="display:block;margin-top:8px;font-size:11px"><input type="checkbox" checked> Contribute anonymised data to benchmarks</label></div>
+  </div>
+
+  <!-- ── KPI TILES ──────────────────────────────────────────────────────── -->
+  <div class="kpi-row">
+
+    <div class="kpi amber">
+      <div class="kpi-label">Security Score</div>
+      <div class="kpi-value amber">68<small style="font-size:13px;font-weight:600">/100</small></div>
+      <div class="kpi-sub">Grade: <strong>C+</strong> &nbsp;<span class="kpi-delta up">↑ +4</span></div>
+      <div class="kpi-spark">
+        <svg width="100%" height="28" viewBox="0 0 100 28">
+          <polyline points="0,20 14,18 28,22 42,15 56,17 70,12 84,10 100,8"
+            fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="100" cy="8" r="3" fill="#F59E0B"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi red">
+      <div class="kpi-label">Open Findings</div>
+      <div class="kpi-value red">12</div>
+      <div class="kpi-sub"><span style="color:var(--red);font-weight:700">3 Critical</span> &nbsp;·&nbsp; 4 High</div>
+      <div class="kpi-spark">
+        <svg width="100%" height="28" viewBox="0 0 120 28">
+          <rect x="2"  y="10" width="10" height="18" rx="2" fill="#FECACA"/>
+          <rect x="16" y="4"  width="10" height="24" rx="2" fill="#DC2626"/>
+          <rect x="30" y="8"  width="10" height="20" rx="2" fill="#FECACA"/>
+          <rect x="44" y="6"  width="10" height="22" rx="2" fill="#DC2626"/>
+          <rect x="58" y="12" width="10" height="16" rx="2" fill="#FECACA"/>
+          <rect x="72" y="3"  width="10" height="25" rx="2" fill="#DC2626"/>
+          <rect x="86" y="8"  width="10" height="20" rx="2" fill="#FECACA"/>
+          <rect x="100" y="5" width="10" height="23" rx="2" fill="#DC2626"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi red">
+      <div class="kpi-label">Financial Exposure</div>
+      <div class="kpi-value red">£47,200</div>
+      <div class="kpi-sub"><span class="kpi-delta up">↓ £8,400</span> from last scan</div>
+      <div class="kpi-spark">
+        <svg width="100%" height="28" viewBox="0 0 100 28">
+          <polyline points="0,8 14,12 28,6 42,14 56,10 70,16 84,10 100,12"
+            fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="100" cy="12" r="3" fill="#DC2626"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-label">Active Agents (L7/L8)</div>
+      <div class="kpi-value green">12<small style="font-size:13px;font-weight:400">/12</small></div>
+      <div class="kpi-sub"><span class="kpi-delta up">100%</span> coverage</div>
+      <div class="kpi-spark">
+        <svg width="100%" height="28" viewBox="0 0 120 28">
+          <rect x="2"  y="14" width="10" height="14" rx="2" fill="#4CC844"/>
+          <rect x="16" y="10" width="10" height="18" rx="2" fill="#4CC844"/>
+          <rect x="30" y="8"  width="10" height="20" rx="2" fill="#4CC844"/>
+          <rect x="44" y="12" width="10" height="16" rx="2" fill="#4CC844"/>
+          <rect x="58" y="6"  width="10" height="22" rx="2" fill="#4CC844"/>
+          <rect x="72" y="10" width="10" height="18" rx="2" fill="#4CC844"/>
+          <rect x="86" y="4"  width="10" height="24" rx="2" fill="#4CC844"/>
+          <rect x="100" y="8" width="10" height="20" rx="2" fill="#4CC844"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi blue">
+      <div class="kpi-label">Compliance Score</div>
+      <div class="kpi-value blue">67%</div>
+      <div class="kpi-sub">Avg across 5 frameworks <span class="kpi-delta up">↑ 3%</span></div>
+      <div class="kpi-spark">
+        <svg width="100%" height="28" viewBox="0 0 100 28">
+          <polyline points="0,22 14,20 28,18 42,16 56,14 70,12 84,10 100,8"
+            fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="100" cy="8" r="3" fill="#2563EB"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi teal">
+      <div class="kpi-label">Layers Active</div>
+      <div class="kpi-value" style="color:#0D9488">8<small style="font-size:13px;font-weight:400">/8</small></div>
+      <div class="kpi-sub">L1–L8 all monitored</div>
+      <div class="kpi-spark" style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin-top:8px">
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+        <div style="height:14px;background:#0D9488;border-radius:3px"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROW 2: HEALTH + LAYERS + RISK BREAKDOWN ───────────────────────── -->
+  <div style="display:grid;grid-template-columns:280px 1fr 280px;gap:14px;margin-bottom:14px">
+
+    <!-- Health Score Card -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Security Health Score</div></div>
+      <div class="health-wrap">
+        <div class="health-donut">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="46" fill="none" stroke="#E8EDE8" stroke-width="10"/>
+            <circle cx="55" cy="55" r="46" fill="none" stroke="#F59E0B" stroke-width="10"
+              stroke-dasharray="289.2" stroke-dashoffset="92.5" stroke-linecap="round"/>
+          </svg>
+          <div class="health-donut-label">
+            <div class="health-score-num">68</div>
+            <div class="health-score-sub">/100</div>
+          </div>
+        </div>
+        <div class="health-meta">
+          <div class="health-grade">C+</div>
+          <div class="health-desc">At risk. 3 critical vulnerabilities require immediate attention.</div>
+          <div class="health-bars">
+            <div class="hb-row"><div class="hb-label">Recon</div><div class="hb-bar"><div class="hb-fill" style="width:72%;background:#F59E0B"></div></div><div class="hb-val">72</div></div>
+            <div class="hb-row"><div class="hb-label">Web</div><div class="hb-bar"><div class="hb-fill" style="width:54%;background:#DC2626"></div></div><div class="hb-val">54</div></div>
+            <div class="hb-row"><div class="hb-label">Cloud</div><div class="hb-bar"><div class="hb-fill" style="width:62%;background:#F59E0B"></div></div><div class="hb-val">62</div></div>
+            <div class="hb-row"><div class="hb-label">SOC</div><div class="hb-bar"><div class="hb-fill" style="width:88%;background:#4CC844"></div></div><div class="hb-val">88</div></div>
+            <div class="hb-row"><div class="hb-label">Comply</div><div class="hb-bar"><div class="hb-fill" style="width:67%;background:#F59E0B"></div></div><div class="hb-val">67</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        🤖 <em>Next scan scheduled 02:00 tonight</em>
+      </div>
+    </div>
+
+    <!-- Layer Coverage -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Scanning Layer Status <small>· Real-time</small></div>
+        <button class="btn btn-sm btn-outline">View All</button>
+      </div>
+      <div class="layer-grid">
+        <div class="layer-tile"><div class="layer-badge">L1</div><div class="layer-info"><div class="layer-name">External Recon</div><div class="layer-stat">7 findings · 8m ago</div></div><div class="layer-status-dot ld-amber"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L2</div><div class="layer-info"><div class="layer-name">Web AppSec</div><div class="layer-stat">11 findings · 2h ago</div></div><div class="layer-status-dot ld-red"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L3</div><div class="layer-info"><div class="layer-name">Mobile</div><div class="layer-stat">No APK uploaded</div></div><div class="layer-status-dot ld-grey"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L4</div><div class="layer-info"><div class="layer-name">API Security</div><div class="layer-stat">5 findings · 1d ago</div></div><div class="layer-status-dot ld-red"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L5</div><div class="layer-info"><div class="layer-name">Compliance</div><div class="layer-stat">GDPR 78% · PCI 61%</div></div><div class="layer-status-dot ld-amber"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L6</div><div class="layer-info"><div class="layer-name">Cloud Posture</div><div class="layer-stat">8 findings · 3h ago</div></div><div class="layer-status-dot ld-amber"></div></div>
+        <div class="layer-tile"><div class="layer-badge">L7</div><div class="layer-info"><div class="layer-name">SOC / SIEM</div><div class="layer-stat">12 agents · 3 alerts</div></div><div class="layer-status-dot ld-green"></div></div>
+        <div class="layer-tile" style="border-color:#DC2626;background:#FFFAFA"><div class="layer-badge" style="background:#DC2626">L8</div><div class="layer-info"><div class="layer-name">Malware D&amp;R</div><div class="layer-stat" style="color:#DC2626">⚠ 1 needs approval</div></div><div class="layer-status-dot ld-red"></div></div>
+      </div>
+    </div>
+
+    <!-- Financial Risk Breakdown -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Financial Risk</div></div>
+      <div class="card-body" style="padding-top:8px">
+        <div class="fin-hero">
+          <div class="fin-label">Total Estimated Exposure</div>
+          <div class="fin-total">£47,200</div>
+          <div class="fin-breakdown">
+            <div><div class="fin-item-val">£28K</div><div class="fin-item-lbl">Data breach</div></div>
+            <div><div class="fin-item-val">£12K</div><div class="fin-item-lbl">Regulatory</div></div>
+            <div><div class="fin-item-val">£7.2K</div><div class="fin-item-lbl">Downtime</div></div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--grey-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Top Risk Contributors</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:6px"><div style="font-size:10px;flex:1;color:var(--grey-text)">SQL Injection (L2)</div><div style="font-size:11px;font-weight:700;color:var(--red)">£18,000</div></div>
+            <div style="height:4px;background:#e8ede8;border-radius:2px;overflow:hidden;margin:-2px 0"><div style="height:100%;width:100%;background:var(--red);border-radius:2px"></div></div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="font-size:10px;flex:1;color:var(--grey-text)">Subdomain Takeover (L1)</div><div style="font-size:11px;font-weight:700;color:var(--red)">£10,000</div></div>
+            <div style="height:4px;background:#e8ede8;border-radius:2px;overflow:hidden;margin:-2px 0"><div style="height:100%;width:56%;background:#F59E0B;border-radius:2px"></div></div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="font-size:10px;flex:1;color:var(--grey-text)">BOLA / IDOR (L4)</div><div style="font-size:11px;font-weight:700;color:var(--red)">£9,200</div></div>
+            <div style="height:4px;background:#e8ede8;border-radius:2px;overflow:hidden;margin:-2px 0"><div style="height:100%;width:51%;background:#F59E0B;border-radius:2px"></div></div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="font-size:10px;flex:1;color:var(--grey-text)">S3 Public Bucket (L6)</div><div style="font-size:11px;font-weight:700;color:var(--amber)">£5,400</div></div>
+            <div style="height:4px;background:#e8ede8;border-radius:2px;overflow:hidden;margin:-2px 0"><div style="height:100%;width:30%;background:var(--blue);border-radius:2px"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ROW 3: TREND + COMPLIANCE + AI ───────────────────────────────── -->
+  <div style="display:grid;grid-template-columns:1fr 380px 220px;gap:14px;margin-bottom:14px">
+
+    <!-- Health Score Trend -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Security Score Trend <small>· 12 weeks</small></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;color:var(--grey-muted)">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green-lime);margin-right:3px"></span>Score
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:6px;margin-right:3px"></span>Findings
+          </span>
+        </div>
+      </div>
+      <div class="trend-wrap" style="padding-bottom:14px">
+        <svg width="100%" height="120" viewBox="0 0 480 120" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" y1="30"  x2="480" y2="30"  stroke="#F0F4F2" stroke-width="1"/>
+          <line x1="0" y1="60"  x2="480" y2="60"  stroke="#F0F4F2" stroke-width="1"/>
+          <line x1="0" y1="90"  x2="480" y2="90"  stroke="#F0F4F2" stroke-width="1"/>
+          <!-- Score area fill -->
+          <polygon points="0,78 40,82 80,86 120,74 160,70 200,66 240,68 280,62 320,58 360,54 400,50 440,46 480,40 480,120 0,120"
+            fill="rgba(76,200,68,.08)"/>
+          <!-- Score line -->
+          <polyline points="0,78 40,82 80,86 120,74 160,70 200,66 240,68 280,62 320,58 360,54 400,50 440,46 480,40"
+            fill="none" stroke="var(--green-lime)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Labels Y -->
+          <text x="4" y="33"  font-size="9" fill="#9BA8A2">80</text>
+          <text x="4" y="63"  font-size="9" fill="#9BA8A2">60</text>
+          <text x="4" y="93"  font-size="9" fill="#9BA8A2">40</text>
+          <!-- Dots -->
+          <circle cx="0"   cy="78" r="3" fill="var(--green-lime)"/>
+          <circle cx="480" cy="40" r="4" fill="var(--green-lime)" stroke="#fff" stroke-width="2"/>
+          <!-- X labels -->
+          <text x="0"   y="115" font-size="9" fill="#9BA8A2">25 Mar</text>
+          <text x="40"  y="115" font-size="9" fill="#9BA8A2">8 Apr</text>
+          <text x="120" y="115" font-size="9" fill="#9BA8A2">29 Apr</text>
+          <text x="200" y="115" font-size="9" fill="#9BA8A2">20 May</text>
+          <text x="320" y="115" font-size="9" fill="#9BA8A2">3 Jun</text>
+          <text x="440" y="115" font-size="9" fill="#9BA8A2" font-weight="700">Today</text>
+          <!-- Today value label -->
+          <rect x="450" y="28" width="28" height="14" rx="4" fill="var(--green-dark)"/>
+          <text x="464" y="38" font-size="9" fill="var(--green-lime)" text-anchor="middle" font-weight="700">68</text>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--grey-muted);margin-top:4px;padding:0 2px">
+          <span>Start: 52</span>
+          <span style="color:var(--green-lime);font-weight:700">+16 pts improvement</span>
+          <span>Today: 68</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compliance Gauges -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Compliance Posture</div>
+        <a href="08-l5-compliance.html" style="font-size:11px;color:var(--green-lime)">View details →</a>
+      </div>
+      <div class="compliance-grid">
+
+        <div class="compliance-tile">
+          <div class="compliance-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#E8EDE8" stroke-width="7"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#4CC844" stroke-width="7"
+                stroke-dasharray="163.4" stroke-dashoffset="35.9" stroke-linecap="round"/>
+            </svg>
+            <div class="compliance-pct" style="font-size:11px">78%</div>
+          </div>
+          <div class="compliance-name">GDPR</div>
+          <div class="compliance-change c-up">↑ 2%</div>
+        </div>
+
+        <div class="compliance-tile">
+          <div class="compliance-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#E8EDE8" stroke-width="7"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#F59E0B" stroke-width="7"
+                stroke-dasharray="163.4" stroke-dashoffset="63.7" stroke-linecap="round"/>
+            </svg>
+            <div class="compliance-pct" style="font-size:11px">61%</div>
+          </div>
+          <div class="compliance-name">PCI-DSS</div>
+          <div class="compliance-change c-up">↑ 5%</div>
+        </div>
+
+        <div class="compliance-tile">
+          <div class="compliance-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#E8EDE8" stroke-width="7"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#F59E0B" stroke-width="7"
+                stroke-dasharray="163.4" stroke-dashoffset="73.5" stroke-linecap="round"/>
+            </svg>
+            <div class="compliance-pct" style="font-size:11px">55%</div>
+          </div>
+          <div class="compliance-name">ISO 27001</div>
+          <div class="compliance-change c-up">↑ 1%</div>
+        </div>
+
+        <div class="compliance-tile">
+          <div class="compliance-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#E8EDE8" stroke-width="7"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#2563EB" stroke-width="7"
+                stroke-dasharray="163.4" stroke-dashoffset="81.7" stroke-linecap="round"/>
+            </svg>
+            <div class="compliance-pct" style="font-size:11px">50%</div>
+          </div>
+          <div class="compliance-name">SOC2</div>
+          <div class="compliance-change c-down">↓ 1%</div>
+        </div>
+
+        <div class="compliance-tile">
+          <div class="compliance-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#E8EDE8" stroke-width="7"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#DC2626" stroke-width="7"
+                stroke-dasharray="163.4" stroke-dashoffset="98" stroke-linecap="round"/>
+            </svg>
+            <div class="compliance-pct" style="font-size:11px">40%</div>
+          </div>
+          <div class="compliance-name">CE+</div>
+          <div class="compliance-change c-up">↑ 8%</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AI Usage -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">🤖 AI Engine</div></div>
+      <div class="ai-stats">
+        <div class="ai-stat">
+          <div class="ai-stat-val">84%</div>
+          <div class="ai-stat-lbl">Cache hit rate</div>
+        </div>
+        <div class="ai-stat">
+          <div class="ai-stat-val">$4.82</div>
+          <div class="ai-stat-lbl">AI cost June</div>
+        </div>
+        <div class="ai-stat">
+          <div class="ai-stat-val">1.4s</div>
+          <div class="ai-stat-lbl">Avg triage time</div>
+        </div>
+        <div class="ai-stat">
+          <div class="ai-stat-val">127</div>
+          <div class="ai-stat-lbl">Analyses (June)</div>
+        </div>
+      </div>
+      <div class="ai-model">
+        <div class="ai-model-row"><span class="ai-model-key">Model</span><span class="ai-model-val">claude-sonnet-4-6</span></div>
+        <div class="ai-model-row"><span class="ai-model-key">Cached tokens</span><span class="ai-model-val" style="color:#16A34A">633K</span></div>
+        <div class="ai-model-row"><span class="ai-model-key">Saved vs no-cache</span><span class="ai-model-val" style="color:#16A34A">~$21.00</span></div>
+        <div class="ai-model-row"><span class="ai-model-key">Monthly cap</span><span class="ai-model-val">$50.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ROW 4: FINDINGS + SOC FEED + TIMELINE ─────────────────────────── -->
+  <div style="display:grid;grid-template-columns:1fr 310px;gap:14px;margin-bottom:14px">
+
+    <!-- Top Findings -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Active Findings <small>· 12 open</small></div>
+        <select style="font-size:11px;padding:4px 8px;border:1px solid var(--grey-border);border-radius:6px;color:var(--grey-text);background:#fff">
+          <option>All Severity</option><option>Critical</option><option>High</option>
+        </select>
+        <a href="04-l1-report.html" style="font-size:11px;color:var(--green-lime)">View all →</a>
+      </div>
+      <table class="findings-table">
+        <thead>
+          <tr>
+            <th>Finding</th><th>Layer</th><th>Severity</th><th>Exposure</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="finding-name">SQL Injection — /api/search</div><div class="finding-meta">OWASP A03 · CVE-level · Exploitable in &lt;5 min</div></td>
+            <td><span class="status st-live" style="background:#E8F0E8;color:var(--green-dark)">L2</span></td>
+            <td><span class="sev sev-critical">CRITICAL</span></td>
+            <td style="font-weight:800;color:var(--red)">£18,000</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-primary">Fix</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">BOLA — /orders/{id} access control</div><div class="finding-meta">API1:2023 · Any auth'd user can read others' orders</div></td>
+            <td><span class="status" style="background:#EFF6FF;color:var(--blue)">L4</span></td>
+            <td><span class="sev sev-critical">CRITICAL</span></td>
+            <td style="font-weight:800;color:var(--red)">£9,200</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-primary">Fix</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">Subdomain takeover — staging.acmecorp.com</div><div class="finding-meta">Dangling CNAME → Heroku · Active exploitation risk</div></td>
+            <td><span class="status" style="background:#F0FDF4;color:#166534">L1</span></td>
+            <td><span class="sev sev-critical">CRITICAL</span></td>
+            <td style="font-weight:800;color:var(--red)">£10,000</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-primary">Fix</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">IAM privilege escalation — dev-ci-role</div><div class="finding-meta">iam:CreatePolicyVersion → AdministratorAccess path</div></td>
+            <td><span class="status" style="background:#EFF6FF;color:var(--blue)">L6</span></td>
+            <td><span class="sev sev-high">HIGH</span></td>
+            <td style="font-weight:800;color:var(--amber)">£6,800</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-outline">Fix</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">DMARC policy set to 'none'</div><div class="finding-meta">Email spoofing possible · SPF insufficient</div></td>
+            <td><span class="status" style="background:#F0FDF4;color:#166534">L1</span></td>
+            <td><span class="sev sev-high">HIGH</span></td>
+            <td style="font-weight:800;color:var(--amber)">£9,500</td>
+            <td><span class="status st-progress">In Progress</span></td>
+            <td><button class="btn btn-xs btn-outline">View</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">3 S3 buckets with public access enabled</div><div class="finding-meta">acme-user-uploads publicly readable</div></td>
+            <td><span class="status" style="background:#EFF6FF;color:var(--blue)">L6</span></td>
+            <td><span class="sev sev-high">HIGH</span></td>
+            <td style="font-weight:800;color:var(--amber)">£5,400</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-outline">Fix</button></td>
+          </tr>
+          <tr>
+            <td><div class="finding-name">No rate limiting on /auth/login</div><div class="finding-meta">500 requests in 10s — all 200 OK</div></td>
+            <td><span class="status" style="background:#EFF6FF;color:var(--blue)">L4</span></td>
+            <td><span class="sev sev-high">HIGH</span></td>
+            <td style="font-weight:800;color:var(--amber)">£3,800</td>
+            <td><span class="status st-open">Open</span></td>
+            <td><button class="btn btn-xs btn-outline">Fix</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="card-footer">
+        Showing 7 of 12 open findings &nbsp;·&nbsp;
+        <a href="04-l1-report.html" style="color:var(--green-lime);font-weight:600">View all findings →</a>
+      </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Activity Timeline <small>· Today</small></div></div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-icon red">🦠</div>
+          <div class="tl-content">
+            <div class="tl-title">Webshell detected — PROD-WEB-01</div>
+            <div class="tl-desc">PHP webshell in /wp-content/uploads/ · Awaiting approval</div>
+            <div class="tl-meta"><span class="tl-time">07:14</span><span class="sev sev-critical">CRITICAL</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon amber">🛡️</div>
+          <div class="tl-content">
+            <div class="tl-title">SOAR blocked 185.220.101.42</div>
+            <div class="tl-desc">SSH brute force — 47 attempts blocked by iptables</div>
+            <div class="tl-meta"><span class="tl-time">07:02</span><span class="status st-live" style="background:#D1FAE5;color:#065F46;font-size:9px;padding:2px 6px;border-radius:10px">Auto-resolved</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon green">🔍</div>
+          <div class="tl-content">
+            <div class="tl-title">L1 recon scan completed</div>
+            <div class="tl-desc">acmecorp.com · 7 findings · Score 68 (+4)</div>
+            <div class="tl-meta"><span class="tl-time">07:02</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon amber">📂</div>
+          <div class="tl-content">
+            <div class="tl-title">FIM alert — /etc/passwd modified</div>
+            <div class="tl-desc">DEV-LAPTOP-04 · New user entry added · Under review</div>
+            <div class="tl-meta"><span class="tl-time">06:58</span><span class="sev sev-medium">MEDIUM</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon blue">👤</div>
+          <div class="tl-content">
+            <div class="tl-title">Jane Doe logged in</div>
+            <div class="tl-desc">82.44.12.19 · MFA verified</div>
+            <div class="tl-meta"><span class="tl-time">06:58</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon green">✅</div>
+          <div class="tl-content">
+            <div class="tl-title">HSTS header remediation applied</div>
+            <div class="tl-desc">L1-HDR-002 marked resolved by J.Smith</div>
+            <div class="tl-meta"><span class="tl-time">Yesterday 16:22</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-icon green">🦠</div>
+          <div class="tl-content">
+            <div class="tl-title">Malware auto-quarantined</div>
+            <div class="tl-desc">Trojan.GenericKD · DEV-LAPTOP-04 · Conf 98%</div>
+            <div class="tl-meta"><span class="tl-time">Yesterday 14:22</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROW 5: SOC ALERTS + SCAN STATUS + TOP RISKS ───────────────────── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 240px;gap:14px">
+
+    <!-- SOC Alert Feed -->
+    <div class="card">
+      <div class="card-header">
+        <div class="tl-icon red" style="width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite;flex-shrink:0;margin-right:4px"></div>
+        <div class="card-title">SOC Live Alert Feed <small>· L7/L8</small></div>
+        <a href="10-l7-soc.html" style="font-size:11px;color:var(--green-lime)">SOC Console →</a>
+      </div>
+      <div class="alert-feed" style="max-height:280px;overflow-y:auto">
+
+        <div class="alert-item critical">
+          <div class="alert-top">
+            <span class="sev sev-critical">CRITICAL</span>
+            <span class="alert-agent">PROD-WEB-01</span>
+            <span class="alert-time">07:14:32</span>
+          </div>
+          <div class="alert-title">PHP Webshell detected — awaiting human approval</div>
+          <div class="alert-body">ClamAV: PHP.Webshell.Generic-19 · YARA: webshell_php_generic_cmd · VT: 58/70 · AI conf: 97%</div>
+          <div class="alert-actions">
+            <button class="btn btn-xs btn-primary">⚠ Review Now</button>
+            <button class="btn btn-xs btn-outline">Details</button>
+          </div>
+        </div>
+
+        <div class="alert-item high">
+          <div class="alert-top">
+            <span class="sev sev-high">HIGH</span>
+            <span class="alert-agent">PROD-WEB-01</span>
+            <span class="alert-time">07:02:11</span>
+          </div>
+          <div class="alert-title">SSH brute force — 47 failed logins in 60s</div>
+          <div class="alert-body">Source: 185.220.101.42 (Tor exit node) · SOAR auto-blocked via iptables · MITRE: T1110</div>
+          <div class="alert-actions">
+            <span class="status st-live" style="background:#D1FAE5;color:#065F46;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700">Auto-Resolved</span>
+            <button class="btn btn-xs btn-outline">Details</button>
+          </div>
+        </div>
+
+        <div class="alert-item medium">
+          <div class="alert-top">
+            <span class="sev sev-medium">MEDIUM</span>
+            <span class="alert-agent">DEV-LAPTOP-04</span>
+            <span class="alert-time">06:58:01</span>
+          </div>
+          <div class="alert-title">FIM — /etc/passwd file modified</div>
+          <div class="alert-body">New entry added by root · SHA256: a3f9b2… → 1c4d8f… · Rule 550</div>
+          <div class="alert-actions">
+            <span class="status st-progress">Under Review</span>
+            <button class="btn btn-xs btn-outline">Investigate</button>
+          </div>
+        </div>
+
+        <div class="alert-item resolved">
+          <div class="alert-top">
+            <span class="sev sev-low">LOW</span>
+            <span class="alert-agent">ALL AGENTS</span>
+            <span class="alert-time">06:30:00</span>
+          </div>
+          <div class="alert-title">Nightly ClamAV scan completed — 12/12 agents</div>
+          <div class="alert-body">0 threats found on 11 agents · 1 detection on PROD-WEB-01 (see above)</div>
+          <div class="alert-actions">
+            <span class="status" style="background:#D1FAE5;color:#065F46;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700">Complete</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Scan Layer Detail -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Findings by Layer</div></div>
+      <div class="scan-mini">
+        <div class="scan-row"><div class="scan-layer">L1</div><div class="scan-name">Ext. Recon</div><div class="scan-bar"><div class="scan-fill a" style="width:70%"></div></div><div class="scan-count">7 findings</div></div>
+        <div class="scan-row"><div class="scan-layer">L2</div><div class="scan-name">Web AppSec</div><div class="scan-bar"><div class="scan-fill r" style="width:100%"></div></div><div class="scan-count">11 findings</div></div>
+        <div class="scan-row"><div class="scan-layer">L3</div><div class="scan-name">Mobile</div><div class="scan-bar"><div class="scan-fill b" style="width:20%"></div></div><div class="scan-count">No scan</div></div>
+        <div class="scan-row"><div class="scan-layer">L4</div><div class="scan-name">API</div><div class="scan-bar"><div class="scan-fill r" style="width:80%"></div></div><div class="scan-count">5 findings</div></div>
+        <div class="scan-row"><div class="scan-layer">L5</div><div class="scan-name">Compliance</div><div class="scan-bar"><div class="scan-fill a" style="width:35%"></div></div><div class="scan-count">12 gaps</div></div>
+        <div class="scan-row"><div class="scan-layer">L6</div><div class="scan-name">Cloud</div><div class="scan-bar"><div class="scan-fill a" style="width:75%"></div></div><div class="scan-count">8 findings</div></div>
+        <div class="scan-row"><div class="scan-layer">L7</div><div class="scan-name">SOC/SIEM</div><div class="scan-bar"><div class="scan-fill" style="width:25%"></div></div><div class="scan-count">3 alerts</div></div>
+        <div class="scan-row"><div class="scan-layer" style="background:#DC2626">L8</div><div class="scan-name">Malware</div><div class="scan-bar"><div class="scan-fill r" style="width:15%"></div></div><div class="scan-count" style="color:var(--red)">1 ⚠</div></div>
+      </div>
+      <div class="card-footer">
+        Total: <strong>47 findings</strong> across all layers &nbsp;·&nbsp; 12 open · 35 resolved
+      </div>
+    </div>
+
+    <!-- Top Priority Actions -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top Actions</div></div>
+      <div class="risk-item">
+        <div class="risk-rank r1">1</div>
+        <div class="risk-info">
+          <div class="risk-name">Review webshell</div>
+          <div class="risk-meta">L8 · Approval needed</div>
+        </div>
+        <div class="risk-fin">⚠<small>Urgent</small></div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-rank r1">2</div>
+        <div class="risk-info">
+          <div class="risk-name">Fix SQL injection</div>
+          <div class="risk-meta">L2 · 30 min fix</div>
+        </div>
+        <div class="risk-fin">£18K<small>at risk</small></div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-rank r2">3</div>
+        <div class="risk-info">
+          <div class="risk-name">Fix BOLA on API</div>
+          <div class="risk-meta">L4 · 2h fix</div>
+        </div>
+        <div class="risk-fin">£9.2K<small>at risk</small></div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-rank r2">4</div>
+        <div class="risk-info">
+          <div class="risk-name">Reclaim subdomains</div>
+          <div class="risk-meta">L1 · 5 min fix</div>
+        </div>
+        <div class="risk-fin">£10K<small>at risk</small></div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-rank r3">5</div>
+        <div class="risk-info">
+          <div class="risk-name">Block S3 public access</div>
+          <div class="risk-meta">L6 · 5 min fix</div>
+        </div>
+        <div class="risk-fin">£5.4K<small>at risk</small></div>
+      </div>
+      <div class="card-footer" style="justify-content:center">
+        <a href="04-l1-report.html" style="color:var(--green-lime);font-weight:600;font-size:11px">Full report →</a>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// Animate health ring on load
+document.addEventListener('DOMContentLoaded', () => {
+  const circle = document.querySelector('.health-donut circle:last-child');
+  if(circle){
+    circle.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)';
+    const final = circle.getAttribute('stroke-dashoffset');
+    circle.setAttribute('stroke-dashoffset', '289.2');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      circle.setAttribute('stroke-dashoffset', final);
+    }));
+  }
+  // Animate compliance rings
+  document.querySelectorAll('.compliance-ring circle:last-child').forEach(c => {
+    c.style.transition = 'stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)';
+    const final = c.getAttribute('stroke-dashoffset');
+    c.setAttribute('stroke-dashoffset', '163.4');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      c.setAttribute('stroke-dashoffset', final);
+    }));
+  });
+  // Animate kpi bars
+  document.querySelectorAll('.hb-fill').forEach(el => {
+    const w = el.style.width;
+    el.style.width = '0';
+    el.style.transition = 'width 1s ease';
+    setTimeout(() => el.style.width = w, 200);
+  });
+});
+</script>
+
+<!-- ── AI CHAT FLOATING WIDGET ───────────────────────────────────────── -->
+<style>
+.chat-fab{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.chat-fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1B3D35,#2a5a4a);
+  box-shadow:0 6px 24px rgba(27,61,53,.35);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  transition:transform .2s,box-shadow .2s;position:relative;}
+.chat-fab-btn:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(27,61,53,.45);}
+.chat-fab-btn .notif-dot{position:absolute;top:-3px;right:-3px;width:14px;height:14px;
+  background:#DC2626;border-radius:50%;border:2px solid #fff;
+  font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;}
+.chat-preview{background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(27,61,53,.18);
+  border:1px solid #E0EAE4;width:300px;overflow:hidden;display:none;}
+.chat-preview.open{display:block;animation:slideUp .2s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.cp-header{background:#1B3D35;padding:12px 14px;display:flex;align-items:center;gap:9px;}
+.cp-header-icon{width:28px;height:28px;border-radius:7px;background:rgba(76,200,68,.2);
+  display:flex;align-items:center;justify-content:center;font-size:14px;}
+.cp-header-info h4{font-size:12px;font-weight:700;color:#fff;}
+.cp-header-info p{font-size:10px;color:#9fc8b8;}
+.cp-credits{margin-left:auto;background:rgba(76,200,68,.18);border:1px solid rgba(76,200,68,.3);
+  border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;color:#4CC844;}
+.cp-body{padding:12px;}
+.cp-suggestion{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #E0EAE4;
+  border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:11px;color:#3D4F47;
+  text-decoration:none;transition:all .15s;background:#fff;}
+.cp-suggestion:hover{border-color:#4CC844;background:#F0FDF4;}
+.cp-suggestion-icon{font-size:14px;flex-shrink:0;}
+.cp-suggestion-cost{margin-left:auto;font-size:9px;font-weight:700;color:#7A9088;
+  background:#F1F5F2;padding:1px 5px;border-radius:5px;}
+.cp-input{display:flex;gap:6px;margin-top:8px;}
+.cp-input input{flex:1;padding:7px 10px;border:1.5px solid #E0EAE4;border-radius:8px;
+  font-size:12px;outline:none;}
+.cp-input input:focus{border-color:#4CC844;}
+.cp-input button{width:32px;height:32px;border-radius:8px;background:#4CC844;border:none;
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.cp-footer{padding:8px 12px;background:#F1F5F2;border-top:1px solid #E0EAE4;
+  font-size:10px;color:#7A9088;display:flex;align-items:center;gap:6px;}
+.cp-footer a{color:#4CC844;font-weight:700;text-decoration:none;}
+.fab-label{background:#1B3D35;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;
+  border-radius:8px;box-shadow:0 4px 12px rgba(27,61,53,.25);white-space:nowrap;
+  animation:fadeIn 1s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+</style>
+
+<div class="chat-fab">
+  <div class="chat-preview" id="chat-preview">
+    <div class="cp-header">
+      <div class="cp-header-icon">✦</div>
+      <div class="cp-header-info">
+        <h4>AI Security Assistant</h4>
+        <p>claude-sonnet-4-6 · Ask anything</p>
+      </div>
+      <div class="cp-credits">247 cr</div>
+    </div>
+    <div class="cp-body">
+      <a class="cp-suggestion" href="12-ai-chat.html">
+        <span class="cp-suggestion-icon">🔍</span>
+        Why is my score 68?
+        <span class="cp-suggestion-cost">1 cr</span>
+      </a>
+      <a class="cp-suggestion" href="12-ai-chat.html">
+        <span class="cp-suggestion-icon">🔧</span>
+        Fix my SQL injection now
+        <span class="cp-suggestion-cost">2 cr</span>
+      </a>
+      <a class="cp-suggestion" href="12-ai-chat.html">
+        <span class="cp-suggestion-icon">📋</span>
+        Show GDPR compliance gaps
+        <span class="cp-suggestion-cost">3 cr</span>
+      </a>
+      <a class="cp-suggestion" href="12-ai-chat.html">
+        <span class="cp-suggestion-icon">⚠️</span>
+        Review pending malware action
+        <span class="cp-suggestion-cost">2 cr</span>
+      </a>
+      <div class="cp-input">
+        <input placeholder="Ask a security question…" onclick="window.location='12-ai-chat.html'">
+        <button onclick="window.location='12-ai-chat.html'">➤</button>
+      </div>
+    </div>
+    <div class="cp-footer">
+      💳 247 credits · <a href="12-ai-chat.html">Open full chat →</a>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="fab-label" id="fab-label">Ask AI about your security</span>
+    <button class="chat-fab-btn" onclick="toggleChat()" title="AI Security Assistant">
+      ✦
+      <div class="notif-dot">3</div>
+    </button>
+  </div>
+</div>
+
+<script>
+function toggleChat() {
+  const preview = document.getElementById('chat-preview');
+  const label = document.getElementById('fab-label');
+  const isOpen = preview.classList.contains('open');
+  if(isOpen){ preview.classList.remove('open'); preview.style.display='none'; label.style.display='block'; }
+  else { preview.classList.add('open'); preview.style.display='block'; label.style.display='none'; }
+}
+setTimeout(() => {
+  const l = document.getElementById('fab-label');
+  if(l) l.style.display = 'none';
+}, 4000);
+</script>
+</body>
+</html>

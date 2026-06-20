@@ -1,0 +1,24 @@
+meta {
+  name: Get Me
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("has workspace_domain", function() {
+    expect(res.body.workspace_domain).to.be.a("string");
+  });
+}

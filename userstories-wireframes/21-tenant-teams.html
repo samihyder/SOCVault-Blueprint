@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — Tenant Team & Sub-User Management</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.topbar-right .notif { color:#aaa; font-size:16px; cursor:pointer; position:relative; }
+.topbar-right .notif .dot { position:absolute; top:0; right:0; width:7px; height:7px;
+  background:#DC2626; border-radius:50%; border:1.5px solid #1B3D35; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; transition:background .15s; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.sidebar a .badge-count { margin-left:auto; background:#DC2626; color:#fff; font-size:9px;
+  font-weight:700; padding:1px 5px; border-radius:9px; }
+.main { margin-left:210px; margin-top:52px; padding:22px 24px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:18px; margin-bottom:16px; }
+.card-title { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:12px;
+  padding-bottom:8px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:8px; }
+.card-subtitle { font-size:10px; color:#888; margin-left:auto; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.passed { background:#D1FAE5; color:#065F46; }
+.status { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.status.active   { background:#D1FAE5; color:#065F46; }
+.status.inactive { background:#F3F4F6; color:#6B7280; }
+.status.pending  { background:#FEF3C7; color:#92400E; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th { background:#1B3D35; color:#fff; font-size:11px; font-weight:600; padding:9px 12px; text-align:left; }
+thead th:first-child { border-radius:6px 0 0 0; }
+thead th:last-child  { border-radius:0 6px 0 0; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody tr:hover { background:#E8F0E8; }
+tbody td { padding:8px 12px; border-bottom:1px solid #e0e8e0; color:#444; vertical-align:middle; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-danger { background:#DC2626; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.form-group { margin-bottom:14px; }
+.form-label { font-size:11px; font-weight:600; color:#1B3D35; margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:8px 10px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; color:#222; background:#fff; }
+.form-hint { font-size:10px; color:#888; margin-top:3px; }
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; }
+.alert-strip.info    { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+.alert-strip.high    { background:#FFF7ED; border-left:4px solid #F59E0B; color:#92400E; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub   { font-size:12px; color:#888; margin-bottom:18px; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px;
+  padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+.timeline { border-left:2px solid #4CC844; margin-left:10px; padding-left:18px; }
+.timeline-item { position:relative; padding-bottom:14px; }
+.timeline-item::before { content:''; position:absolute; left:-23px; top:4px;
+  width:8px; height:8px; border-radius:50%; background:#4CC844; }
+.timeline-time { font-size:10px; color:#888; }
+.timeline-text { font-size:12px; color:#444; margin-top:2px; }
+
+/* USER SLOT CARDS */
+.user-slot { border:2px dashed #d1d5db; border-radius:10px; padding:20px; text-align:center;
+  background:#fff; transition:border-color .2s; }
+.user-slot.filled { border:2px solid #4CC844; background:#F0FDF4; }
+.user-slot.pending { border:2px solid #F59E0B; background:#FFFBEB; }
+.slot-icon { font-size:32px; margin-bottom:8px; }
+.slot-role { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:4px; }
+.slot-desc { font-size:11px; color:#888; margin-bottom:12px; line-height:1.4; }
+.slot-user { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #e0e8e0;
+  border-radius:8px; padding:8px 10px; margin-bottom:10px; text-align:left; }
+.slot-user-avatar { width:28px; height:28px; border-radius:50%; background:#1B3D35;
+  display:flex; align-items:center; justify-content:center; color:#4CC844; font-size:11px; font-weight:700; }
+.slot-user-name { font-size:12px; font-weight:600; color:#1B3D35; }
+.slot-user-email { font-size:10px; color:#888; }
+
+/* PERMISSION MATRIX */
+.perm-yes { color:#4CC844; font-size:14px; font-weight:700; }
+.perm-no  { color:#DC2626; font-size:14px; font-weight:700; }
+.perm-ltd { color:#F59E0B; font-size:12px; font-weight:700; }
+.role-badge { display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:10px; }
+.role-badge.owner    { background:#1B3D35; color:#4CC844; }
+.role-badge.manager  { background:#2a5a4a; color:#fff; }
+.role-badge.exec     { background:#DBEAFE; color:#1E40AF; }
+.role-badge.support  { background:#F3F4F6; color:#374151; }
+.role-badge.pending  { background:#FEF3C7; color:#92400E; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">SOC Pro</span>
+    <div class="notif">🔔<span class="dot"></span></div>
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Overview</div>
+  <a href="02-dashboard.html"><span class="ico">🏠</span>Dashboard</a>
+  <a href="17-settings.html"><span class="ico">🌐</span>Domains & Assets</a>
+  <div class="sidebar-section">Scan Layers</div>
+  <a href="03-l1-recon.html"><span class="ico">🔍</span>L1 — Free Recon</a>
+  <a href="05-l2-web.html"><span class="ico">🕸️</span>L2 — Web AppSec</a>
+  <a href="06-l3-mobile.html"><span class="ico">📱</span>L3 — Mobile</a>
+  <a href="07-l4-api.html"><span class="ico">⚡</span>L4 — API Security</a>
+  <a href="08-l5-compliance.html"><span class="ico">📋</span>L5 — Compliance</a>
+  <a href="09-l6-cloud.html"><span class="ico">☁️</span>L6 — Cloud</a>
+  <a href="10-l7-soc.html"><span class="ico">🛡️</span>L7 — SOC/SIEM<span class="badge-count">3</span></a>
+  <a href="11-l8-malware.html"><span class="ico">🦠</span>L8 — Malware<span class="badge-count">1</span></a>
+  <a href="20-l9-ai-scan.html"><span class="ico">✦</span>L9 — AI Agent Scan</a>
+  <div class="sidebar-section">Platform</div>
+  <a href="12-ai-chat.html"><span class="ico">💬</span>AI Chat Assistant</a>
+  <a href="13-soar.html"><span class="ico">⚙️</span>SOAR & Playbooks</a>
+  <a href="04-l1-report.html"><span class="ico">📄</span>AI Risk Report</a>
+  <a href="14-billing.html"><span class="ico">💳</span>Billing</a>
+  <a href="15-msp-portal.html"><span class="ico">🏢</span>MSP Portal</a>
+  <a href="21-tenant-teams.html" class="active"><span class="ico">👥</span>Team & Sub-Users</a>
+  <a href="16-notifications.html"><span class="ico">🔔</span>Notifications<span class="badge-count">5</span></a>
+  <a href="17-settings.html"><span class="ico">⚙️</span>Settings</a>
+  <a href="18-audit-log.html"><span class="ico">📜</span>Audit Log</a>
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="22-socvault-team-admin.html"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html"><span class="ico">📈</span>Metrics Observatory</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:10px">
+  <span class="story-ref">US-141</span><span class="story-ref">US-142</span><span class="story-ref">US-143</span>
+  <span class="story-ref">US-144</span><span class="story-ref">US-145</span><span class="story-ref">US-146</span>
+  <span class="story-ref">US-147</span><span class="story-ref">US-148</span><span class="story-ref">US-149</span>
+  <span class="story-ref">US-150</span>
+</div>
+
+<div class="page-title">Team & Sub-User Management</div>
+<div class="page-sub">Acme Corp (T-0A3F1B2C) · SOC Pro Tenant · Owner: john.doe@acmecorp.com</div>
+
+<div class="wf-note">Wireframe state: Owner has filled all 3 sub-user slots. Support sub-tenant invitation is pending acceptance.</div>
+
+<div class="alert-strip info">
+  <span>👥</span>
+  <div><strong>Your workspace includes 3 fixed sub-user slots.</strong> Each slot maps to a specific role with predefined permissions. You cannot add more than 1 per role. All sub-user actions are logged in your Audit Log.</div>
+</div>
+
+<!-- The 3 Slots -->
+<div class="grid-3" style="margin-bottom:16px">
+
+  <!-- Slot 1: Support Sub-Tenant -->
+  <div class="user-slot pending">
+    <div class="slot-icon">🤝</div>
+    <div class="slot-role">Support Sub-Tenant</div>
+    <div class="slot-desc">A designated support partner or internal helpdesk user. Read-only view of dashboards and reports. Can raise support tickets on your behalf.</div>
+    <div class="slot-user">
+      <div class="slot-user-avatar">IT</div>
+      <div>
+        <div class="slot-user-name">it-support@partnerco.com</div>
+        <div class="slot-user-email">Invitation sent 14 Jun 2026 · Expires in 36h</div>
+      </div>
+    </div>
+    <span class="status pending">Pending Acceptance</span>
+    <div style="margin-top:10px;display:flex;gap:6px;justify-content:center">
+      <button class="btn btn-outline btn-xs">Resend Invite</button>
+      <button class="btn btn-danger btn-xs">Revoke</button>
+    </div>
+  </div>
+
+  <!-- Slot 2: Viewer-Only Executive -->
+  <div class="user-slot filled">
+    <div class="slot-icon">👔</div>
+    <div class="slot-role">Viewer-Only Executive</div>
+    <div class="slot-desc">Board-level or C-suite access. Read-only view of all dashboards, Workspace Health Score, financial risk exposure, and PDF report downloads. No operational access.</div>
+    <div class="slot-user">
+      <div class="slot-user-avatar">CE</div>
+      <div>
+        <div class="slot-user-name">ceo@acmecorp.com</div>
+        <div class="slot-user-email">Active since 12 Jun 2026 · Last login: today 09:14</div>
+      </div>
+    </div>
+    <span class="status active">Active</span>
+    <div style="margin-top:10px;display:flex;gap:6px;justify-content:center">
+      <button class="btn btn-outline btn-xs">View Activity</button>
+      <button class="btn btn-danger btn-xs">Revoke</button>
+    </div>
+  </div>
+
+  <!-- Slot 3: Manager -->
+  <div class="user-slot filled">
+    <div class="slot-icon">🔑</div>
+    <div class="slot-role">Manager</div>
+    <div class="slot-desc">Full operational access — trigger scans, manage settings, view all reports, manage Wazuh agents, configure SOAR playbooks. Cannot delete account or change payment method.</div>
+    <div class="slot-user">
+      <div class="slot-user-avatar">SM</div>
+      <div>
+        <div class="slot-user-name">sarah.miller@acmecorp.com</div>
+        <div class="slot-user-email">Active since 10 Jun 2026 · Last login: today 08:42</div>
+      </div>
+    </div>
+    <span class="status active">Active</span>
+    <div style="margin-top:10px;display:flex;gap:6px;justify-content:center">
+      <button class="btn btn-outline btn-xs">View Activity</button>
+      <button class="btn btn-danger btn-xs">Revoke</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Invite Flow -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">✉️ Invite a Sub-User <span class="card-subtitle">US-141, US-147</span></div>
+    <div class="alert-strip high" style="margin-bottom:12px">
+      <span>⚠</span>
+      Support Sub-Tenant slot is pending. Revoke first to invite a different person, or wait for current invite to expire (36h).
+    </div>
+    <div class="form-group">
+      <label class="form-label">Role Slot</label>
+      <select class="form-input">
+        <option disabled selected>Select available slot…</option>
+        <option disabled>Support Sub-Tenant — Slot filled (pending)</option>
+        <option disabled>Viewer-Only Executive — Slot filled (active)</option>
+        <option disabled>Manager — Slot filled (active)</option>
+      </select>
+      <div class="form-hint">All slots are currently filled. Revoke a user to free a slot.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Business Email Address</label>
+      <input class="form-input" placeholder="colleague@company.com" disabled>
+      <div class="form-hint">Must be a business email. Free webmail domains are not accepted.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Personal Message (optional)</label>
+      <textarea class="form-input" rows="2" placeholder="e.g. You've been granted access to our SOCVault security dashboard…" disabled></textarea>
+    </div>
+    <button class="btn btn-primary" disabled style="opacity:.5;width:100%">Send Invitation (48h expiry)</button>
+    <div class="form-hint" style="margin-top:6px">Invitation link expires after 48 hours. All invite actions are logged.</div>
+  </div>
+
+  <!-- Permission Matrix -->
+  <div class="card">
+    <div class="card-title">🔐 Permission Matrix <span class="card-subtitle">US-142, US-143, US-144, US-145</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th><span class="role-badge owner">Owner</span></th>
+          <th><span class="role-badge manager">Manager</span></th>
+          <th><span class="role-badge exec">Exec</span></th>
+          <th><span class="role-badge support">Support</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>View Dashboard</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td></tr>
+        <tr><td>Trigger Scans (L1–L9)</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>View Scan Reports</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td></tr>
+        <tr><td>Download PDF Reports</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Manage Settings</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>SOAR Playbook Approval</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Deploy Wazuh Agents</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>View Billing</td><td><span class="perm-yes">✓</span></td><td><span class="perm-ltd">Ltd</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Change Payment Method</td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Delete Account</td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Invite Sub-Users</td><td><span class="perm-yes">✓</span></td><td><span class="perm-ltd">Ltd</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+        <tr><td>Raise Support Tickets</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-yes">✓</span></td></tr>
+        <tr><td>View Audit Log</td><td><span class="perm-yes">✓</span></td><td><span class="perm-yes">✓</span></td><td><span class="perm-no">✗</span></td><td><span class="perm-no">✗</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:10px;color:#888"><span class="perm-ltd">Ltd</span> = Limited — view only or with owner approval required</div>
+  </div>
+</div>
+
+<!-- Sub-User Activity / Audit Log -->
+<div class="card">
+  <div class="card-title">📜 Recent Sub-User Activity <span class="card-subtitle">US-148, US-149</span></div>
+  <table>
+    <thead><tr><th>Timestamp</th><th>User</th><th>Role</th><th>Action</th><th>IP Address</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>16 Jun 2026 09:14</td>
+        <td>ceo@acmecorp.com</td>
+        <td><span class="role-badge exec">Viewer-Exec</span></td>
+        <td>Downloaded PDF Report — L1 Scan #S-0847</td>
+        <td>203.0.113.22</td>
+      </tr>
+      <tr>
+        <td>16 Jun 2026 08:42</td>
+        <td>sarah.miller@acmecorp.com</td>
+        <td><span class="role-badge manager">Manager</span></td>
+        <td>Triggered L2 Web AppSec scan on app.acmecorp.com</td>
+        <td>198.51.100.14</td>
+      </tr>
+      <tr>
+        <td>15 Jun 2026 17:33</td>
+        <td>sarah.miller@acmecorp.com</td>
+        <td><span class="role-badge manager">Manager</span></td>
+        <td>Approved SOAR playbook — SSH Brute-Force Block for IP 45.33.32.156</td>
+        <td>198.51.100.14</td>
+      </tr>
+      <tr>
+        <td>15 Jun 2026 14:20</td>
+        <td>ceo@acmecorp.com</td>
+        <td><span class="role-badge exec">Viewer-Exec</span></td>
+        <td>Viewed Dashboard · Workspace Health Score: 71</td>
+        <td>203.0.113.22</td>
+      </tr>
+      <tr>
+        <td>14 Jun 2026 11:05</td>
+        <td>john.doe@acmecorp.com</td>
+        <td><span class="role-badge owner">Owner</span></td>
+        <td>Sent invitation to it-support@partnerco.com (Support Sub-Tenant slot)</td>
+        <td>192.168.1.1</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:10px"><a href="18-audit-log.html" style="color:#4CC844;font-size:12px;font-weight:600">View full audit log →</a></div>
+</div>
+
+</div>
+</body>
+</html>

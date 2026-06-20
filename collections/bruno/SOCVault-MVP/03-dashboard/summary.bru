@@ -1,0 +1,28 @@
+meta {
+  name: Dashboard Summary
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/dashboard/summary
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  FR-090, FR-091, FR-092. US-066.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("has health_score", function() {
+    expect(res.body.health_score).to.be.a("number");
+  });
+}

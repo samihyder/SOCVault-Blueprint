@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — Metrics Observatory</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.topbar-right .notif { color:#aaa; font-size:16px; cursor:pointer; position:relative; }
+.topbar-right .notif .dot { position:absolute; top:0; right:0; width:7px; height:7px;
+  background:#DC2626; border-radius:50%; border:1.5px solid #1B3D35; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; transition:background .15s; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.sidebar a .badge-count { margin-left:auto; background:#DC2626; color:#fff; font-size:9px;
+  font-weight:700; padding:1px 5px; border-radius:9px; }
+.main { margin-left:210px; margin-top:52px; padding:22px 24px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:18px; margin-bottom:16px; }
+.card-title { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:12px;
+  padding-bottom:8px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:8px; }
+.card-subtitle { font-size:10px; color:#888; margin-left:auto; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
+.grid-6 { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px; }
+.metric { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:14px; text-align:center; }
+.metric .val { font-size:22px; font-weight:800; color:#1B3D35; line-height:1; }
+.metric .val.green { color:#4CC844; }
+.metric .val.red { color:#DC2626; }
+.metric .val.amber { color:#F59E0B; }
+.metric .val.blue { color:#3B82F6; }
+.metric .lbl { font-size:9px; color:#888; margin-top:5px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.metric .sub { font-size:10px; color:#aaa; margin-top:3px; }
+.metric .trend-up { color:#22C55E; font-size:9px; font-weight:700; }
+.metric .trend-down { color:#DC2626; font-size:9px; font-weight:700; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.critical { background:#FECACA; color:#991B1B; }
+.sev.high     { background:#FED7AA; color:#9A3412; }
+.sev.medium   { background:#FEF3C7; color:#92400E; }
+.sev.low      { background:#D1FAE5; color:#065F46; }
+.sev.passed   { background:#D1FAE5; color:#065F46; }
+.sev.info     { background:#DBEAFE; color:#1E40AF; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th { background:#1B3D35; color:#fff; font-size:11px; font-weight:600; padding:9px 12px; text-align:left; }
+thead th:first-child { border-radius:6px 0 0 0; }
+thead th:last-child  { border-radius:0 6px 0 0; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody tr:hover { background:#E8F0E8; }
+tbody td { padding:8px 12px; border-bottom:1px solid #e0e8e0; color:#444; vertical-align:middle; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-secondary { background:#1B3D35; color:#fff; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.form-group { margin-bottom:12px; }
+.form-label { font-size:11px; font-weight:600; color:#1B3D35; margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:8px 10px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; color:#222; background:#fff; }
+.form-hint { font-size:10px; color:#888; margin-top:3px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:14px; }
+.tab { padding:8px 16px; font-size:12px; font-weight:600; color:#888; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+.progress-bar { height:8px; background:#e0e8e0; border-radius:4px; overflow:hidden; margin:4px 0; }
+.progress-fill { height:100%; border-radius:4px; background:#4CC844; }
+.progress-fill.red { background:#DC2626; }
+.progress-fill.amber { background:#F59E0B; }
+.progress-fill.blue { background:#3B82F6; }
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; }
+.alert-strip.critical { background:#FEF2F2; border-left:4px solid #DC2626; color:#991B1B; }
+.alert-strip.high     { background:#FFF7ED; border-left:4px solid #F59E0B; color:#92400E; }
+.alert-strip.info     { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success  { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub   { font-size:12px; color:#888; margin-bottom:18px; }
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px;
+  padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+.checklist { list-style:none; }
+.checklist li { padding:5px 0; font-size:12px; display:flex; align-items:center; gap:8px; }
+.checklist li::before { content:'✓'; color:#4CC844; font-weight:700; }
+.checklist li.fail::before { content:'✗'; color:#DC2626; }
+.checklist li.warn::before { content:'⚠'; color:#F59E0B; }
+.code-block { background:#1e2d2a; border-radius:6px; padding:12px 14px;
+  font-family:'Courier New',monospace; font-size:11px; color:#4CC844; overflow-x:auto; margin:8px 0; }
+
+/* CHART MOCK */
+.chart-mock { background:linear-gradient(to bottom, #F0FDF4, #fff); border:1px solid #e0e8e0;
+  border-radius:6px; height:120px; display:flex; align-items:flex-end; padding:0 8px 8px;
+  gap:4px; overflow:hidden; }
+.chart-bar { flex:1; border-radius:3px 3px 0 0; position:relative; }
+.chart-bar .bar-label { position:absolute; bottom:-16px; left:50%; transform:translateX(-50%);
+  font-size:9px; color:#aaa; white-space:nowrap; }
+
+/* SPARKLINE MOCK */
+.sparkline { height:32px; background:linear-gradient(90deg,transparent,rgba(76,200,68,.15));
+  border-radius:4px; display:flex; align-items:center; position:relative; overflow:hidden; }
+.sparkline::after { content:'↗'; position:absolute; right:8px; color:#4CC844; font-weight:700; font-size:14px; }
+
+/* SERVICE ROW */
+.service-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.service-icon { font-size:16px; min-width:24px; }
+.service-name { font-size:12px; font-weight:600; color:#1B3D35; flex:1; }
+.service-cost { font-size:12px; font-weight:700; color:#1B3D35; min-width:64px; text-align:right; }
+.service-bar { flex:2; }
+.service-pct { font-size:10px; color:#888; min-width:36px; text-align:right; }
+
+/* TOKEN METER */
+.token-meter { background:#0d1f1a; border-radius:8px; padding:14px; margin-bottom:10px; }
+.token-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.token-label { font-size:11px; color:#4CC844; min-width:100px; font-family:'Courier New',monospace; }
+.token-bar-bg { flex:1; height:10px; background:rgba(76,200,68,.15); border-radius:5px; }
+.token-bar-fill { height:100%; border-radius:5px; background:#4CC844; }
+.token-val { font-size:11px; color:#b8d4c8; min-width:80px; text-align:right; font-family:'Courier New',monospace; }
+
+/* ENDPOINT TABLE */
+.latency-good { color:#22C55E; font-weight:700; }
+.latency-warn { color:#F59E0B; font-weight:700; }
+.latency-bad  { color:#DC2626; font-weight:700; }
+
+/* DRILL BREADCRUMB */
+.breadcrumb { font-size:11px; color:#888; margin-bottom:14px; }
+.breadcrumb a { color:#4CC844; font-weight:600; }
+.breadcrumb span { margin:0 6px; }
+
+/* ALERT THRESHOLD ROW */
+.threshold-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.threshold-metric { flex:2; font-size:12px; color:#444; }
+.threshold-val input { width:80px; padding:4px 8px; border:1.5px solid #d1d5db; border-radius:4px; font-size:11px; }
+.threshold-current { flex:1; font-size:11px; color:#888; }
+.threshold-status { min-width:70px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">INTERNAL · SUPERADMIN</span>
+    <div class="notif">🔔<span class="dot"></span></div>
+    <div class="avatar">SA</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Overview</div>
+  <a href="02-dashboard.html"><span class="ico">🏠</span>Dashboard</a>
+  <a href="17-settings.html"><span class="ico">🌐</span>Domains & Assets</a>
+  <div class="sidebar-section">Scan Layers</div>
+  <a href="03-l1-recon.html"><span class="ico">🔍</span>L1 — Free Recon</a>
+  <a href="05-l2-web.html"><span class="ico">🕸️</span>L2 — Web AppSec</a>
+  <a href="06-l3-mobile.html"><span class="ico">📱</span>L3 — Mobile</a>
+  <a href="07-l4-api.html"><span class="ico">⚡</span>L4 — API Security</a>
+  <a href="08-l5-compliance.html"><span class="ico">📋</span>L5 — Compliance</a>
+  <a href="09-l6-cloud.html"><span class="ico">☁️</span>L6 — Cloud</a>
+  <a href="10-l7-soc.html"><span class="ico">🛡️</span>L7 — SOC/SIEM<span class="badge-count">3</span></a>
+  <a href="11-l8-malware.html"><span class="ico">🦠</span>L8 — Malware<span class="badge-count">1</span></a>
+  <a href="20-l9-ai-scan.html"><span class="ico">✦</span>L9 — AI Agent Scan</a>
+  <div class="sidebar-section">Platform</div>
+  <a href="12-ai-chat.html"><span class="ico">💬</span>AI Chat Assistant</a>
+  <a href="13-soar.html"><span class="ico">⚙️</span>SOAR & Playbooks</a>
+  <a href="04-l1-report.html"><span class="ico">📄</span>AI Risk Report</a>
+  <a href="14-billing.html"><span class="ico">💳</span>Billing</a>
+  <a href="15-msp-portal.html"><span class="ico">🏢</span>MSP Portal</a>
+  <a href="21-tenant-teams.html"><span class="ico">👥</span>Team & Sub-Users</a>
+  <a href="16-notifications.html"><span class="ico">🔔</span>Notifications<span class="badge-count">5</span></a>
+  <a href="17-settings.html"><span class="ico">⚙️</span>Settings</a>
+  <a href="18-audit-log.html"><span class="ico">📜</span>Audit Log</a>
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="25-admin-dev-tracker.html"><span class="ico">📊</span>Development Tracker</a>
+  <a href="24-admin-api-explorer.html"><span class="ico">🧪</span>API Explorer</a>
+  <a href="22-socvault-team-admin.html"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html" class="active"><span class="ico">📈</span>Metrics Observatory</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:10px">
+  <span class="story-ref">US-166</span><span class="story-ref">US-167</span><span class="story-ref">US-168</span>
+  <span class="story-ref">US-169</span><span class="story-ref">US-170</span><span class="story-ref">US-171</span>
+  <span class="story-ref">US-172</span><span class="story-ref">US-173</span><span class="story-ref">US-174</span>
+  <span class="story-ref">US-175</span><span class="story-ref">US-176</span><span class="story-ref">US-177</span>
+  <span class="story-ref">US-178</span><span class="story-ref">US-179</span><span class="story-ref">US-180</span><span class="story-ref">US-181</span><span class="story-ref">US-182</span><span class="story-ref">US-183</span><span class="story-ref">US-184</span><span class="story-ref">US-185</span>
+</div>
+
+<div class="page-title">📈 Metrics Observatory</div>
+<div class="page-sub">SOCVault Internal · Real-time nano-level visibility · AWS + Claude AI + API + Compute + System + Application</div>
+
+<div class="breadcrumb">
+  <a href="19-admin.html">Admin Console</a> <span>›</span> Metrics Observatory
+  <span style="margin-left:12px;background:#EFF6FF;color:#1E40AF;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600">
+    Live · Auto-refresh 30s
+  </span>
+</div>
+
+<div class="wf-note">Wireframe state: 16 Jun 2026 11:30 UTC · Showing last 24h unless noted. Drill-down links represented by clickable table rows.</div>
+
+<!-- Top-Level Overview KPIs -->
+<div class="grid-6">
+  <div class="metric">
+    <div class="val amber">$127.42</div>
+    <div class="lbl">AWS Cost Today</div>
+    <div class="sub trend-up">↑ $12 vs yesterday</div>
+  </div>
+  <div class="metric">
+    <div class="val green">$48.20</div>
+    <div class="lbl">Claude AI Today</div>
+    <div class="sub trend-up">↑ 18% vs 7d avg</div>
+  </div>
+  <div class="metric">
+    <div class="val blue">12,482</div>
+    <div class="lbl">API Requests Today</div>
+    <div class="sub">84/min avg</div>
+  </div>
+  <div class="metric">
+    <div class="val green">0.07%</div>
+    <div class="lbl">API Error Rate</div>
+    <div class="sub">p95: 312ms</div>
+  </div>
+  <div class="metric">
+    <div class="val green">42</div>
+    <div class="lbl">Lambda Concurrency</div>
+    <div class="sub">MVP · Fargate/EKS at paid tier</div>
+  </div>
+  <div class="metric">
+    <div class="val green">99.98%</div>
+    <div class="lbl">Platform Uptime</div>
+    <div class="sub">30d rolling</div>
+  </div>
+</div>
+
+<!-- AWS Cost + Claude AI (side by side) -->
+<div class="grid-2">
+
+  <!-- AWS Cost Breakdown -->
+  <div class="card">
+    <div class="card-title">☁️ AWS Cost Breakdown — Today <span class="card-subtitle">US-166, FR-170</span></div>
+    <div class="tabs">
+      <div class="tab active">By Service</div>
+      <div class="tab">By Region</div>
+      <div class="tab">By Tenant (Top 10)</div>
+      <div class="tab">30-Day Forecast</div>
+    </div>
+
+    <div class="service-row">
+      <div class="service-icon">🖥️</div>
+      <div class="service-name">Lambda + API Gateway</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div></div>
+      <div class="service-pct">45%</div>
+      <div class="service-cost">$57.20</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">🖥️</div>
+      <div class="service-name">Fargate / EKS (paid tier)</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:23%"></div></div></div>
+      <div class="service-pct">23%</div>
+      <div class="service-cost">$29.45</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">🗄️</div>
+      <div class="service-name">MongoDB Atlas (eu-west-2)</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:14%"></div></div></div>
+      <div class="service-pct">14%</div>
+      <div class="service-cost">$17.84</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">📦</div>
+      <div class="service-name">S3 Storage</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:6%"></div></div></div>
+      <div class="service-pct">6%</div>
+      <div class="service-cost">$7.65</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">💬</div>
+      <div class="service-name">SNS (SMS Alerts)</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:4%"></div></div></div>
+      <div class="service-pct">4%</div>
+      <div class="service-cost">$5.10</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">🔐</div>
+      <div class="service-name">Cognito + SSM</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:4%"></div></div></div>
+      <div class="service-pct">4%</div>
+      <div class="service-cost">$5.08</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">⚡</div>
+      <div class="service-name">API Gateway</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:3%"></div></div></div>
+      <div class="service-pct">3%</div>
+      <div class="service-cost">$3.82</div>
+    </div>
+    <div class="service-row">
+      <div class="service-icon">🔴</div>
+      <div class="service-name">Amazon SQS</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:1%"></div></div></div>
+      <div class="service-pct">1%</div>
+      <div class="service-cost">$1.28</div>
+    </div>
+    <div class="service-row" style="opacity:0.55">
+      <div class="service-icon">🔴</div>
+      <div class="service-name">ElastiCache Redis (paid tier)</div>
+      <div class="service-bar"><div class="progress-bar"><div class="progress-fill" style="width:1%"></div></div></div>
+      <div class="service-pct">1%</div>
+      <div class="service-cost">$1.28</div>
+    </div>
+
+    <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e0e8e0;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:#888">30-Day Forecast (at current burn rate)</div>
+        <div style="font-size:20px;font-weight:800;color:#1B3D35">$3,822 / month</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#888">Budget ceiling</div>
+        <div style="font-size:16px;font-weight:700;color:#4CC844">$5,000</div>
+        <div class="progress-bar" style="width:120px;margin-top:4px"><div class="progress-fill" style="width:76%"></div></div>
+        <div style="font-size:10px;color:#888">76% of budget</div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm">Open AWS Cost Explorer →</button>
+      <button class="btn btn-outline btn-sm">Set Budget Alert</button>
+    </div>
+  </div>
+
+  <!-- Claude AI Usage -->
+  <div class="card">
+    <div class="card-title">✦ Claude AI Usage <span class="card-subtitle">US-167, FR-171, FR-172</span></div>
+    <div class="tabs">
+      <div class="tab active">Today</div>
+      <div class="tab">7 Days</div>
+      <div class="tab">30 Days</div>
+      <div class="tab">Per Tenant</div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div style="flex:1;background:#F0FDF4;border:1px solid #86EFAC;border-radius:6px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:800;color:#166534">4,821,320</div>
+        <div style="font-size:10px;color:#166534;font-weight:600">INPUT TOKENS</div>
+      </div>
+      <div style="flex:1;background:#EFF6FF;border:1px solid #93C5FD;border-radius:6px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:800;color:#1E40AF">1,240,810</div>
+        <div style="font-size:10px;color:#1E40AF;font-weight:600">OUTPUT TOKENS</div>
+      </div>
+      <div style="flex:1;background:#FFFBEB;border:1px solid #FCD34D;border-radius:6px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:800;color:#92400E">$48.20</div>
+        <div style="font-size:10px;color:#92400E;font-weight:600">TOTAL COST</div>
+      </div>
+    </div>
+
+    <div class="token-meter">
+      <div style="font-size:10px;color:#4CC844;margin-bottom:8px;font-family:'Courier New',monospace">
+        Model: claude-sonnet-4-6 · Cap: $50/day · Usage: 96.4%
+      </div>
+      <div class="token-row">
+        <span class="token-label">Scan Analysis</span>
+        <div class="token-bar-bg"><div class="token-bar-fill" style="width:58%"></div></div>
+        <span class="token-val">$27.96 (58%)</span>
+      </div>
+      <div class="token-row">
+        <span class="token-label">SOAR Triage</span>
+        <div class="token-bar-bg"><div class="token-bar-fill" style="width:22%;background:#3B82F6"></div></div>
+        <span class="token-val">$10.60 (22%)</span>
+      </div>
+      <div class="token-row">
+        <span class="token-label">AI Chat (Users)</span>
+        <div class="token-bar-bg"><div class="token-bar-fill" style="width:12%;background:#F59E0B"></div></div>
+        <span class="token-val">$5.78 (12%)</span>
+      </div>
+      <div class="token-row">
+        <span class="token-label">L9 Agent Scans</span>
+        <div class="token-bar-bg"><div class="token-bar-fill" style="width:5%;background:#A78BFA"></div></div>
+        <span class="token-val">$2.41 (5%)</span>
+      </div>
+      <div class="token-row">
+        <span class="token-label">Financial Reports</span>
+        <div class="token-bar-bg"><div class="token-bar-fill" style="width:3%;background:#EC4899"></div></div>
+        <span class="token-val">$1.45 (3%)</span>
+      </div>
+    </div>
+
+    <div class="alert-strip success" style="margin-top:12px">
+      <span>💰</span>
+      <div><strong>Prompt caching saved $12.34 today</strong> vs non-cached equivalent. Cache hit rate: 73%. System prompt cached tokens: 2,140,000.</div>
+    </div>
+
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm">Open Anthropic Console →</button>
+      <button class="btn btn-outline btn-sm">Per-Tenant Breakdown</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- API Performance + Compute -->
+<div class="grid-2">
+
+  <!-- API Performance -->
+  <div class="card">
+    <div class="card-title">⚡ API Performance <span class="card-subtitle">US-169, FR-173</span></div>
+    <div class="grid-4" style="margin-bottom:14px;gap:8px">
+      <div class="metric"><div class="val green">118ms</div><div class="lbl">p50 Latency</div></div>
+      <div class="metric"><div class="val green">312ms</div><div class="lbl">p95 Latency</div></div>
+      <div class="metric"><div class="val amber">1,840ms</div><div class="lbl">p99 Latency</div></div>
+      <div class="metric"><div class="val green">0.07%</div><div class="lbl">Error Rate</div></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Endpoint</th><th>Req/hr</th><th>p95 (ms)</th><th>Errors</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code style="font-size:10px">POST /api/scans/trigger</code></td><td>284</td><td><span class="latency-good">198ms</span></td><td>0</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td><code style="font-size:10px">GET /api/scans/{id}/status</code></td><td>2,140</td><td><span class="latency-good">42ms</span></td><td>0</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td><code style="font-size:10px">POST /api/auth/login</code></td><td>820</td><td><span class="latency-good">112ms</span></td><td>12</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td><code style="font-size:10px">GET /api/reports/{id}</code></td><td>1,080</td><td><span class="latency-good">88ms</span></td><td>0</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td><code style="font-size:10px">POST /api/soar/triage</code></td><td>144</td><td><span class="latency-warn">1,240ms</span></td><td>2</td><td><span class="sev medium">Elevated</span></td></tr>
+        <tr><td><code style="font-size:10px">POST /api/ai/analyse</code></td><td>380</td><td><span class="latency-warn">2,180ms</span></td><td>1</td><td><span class="sev medium">AI Dep.</span></td></tr>
+        <tr><td><code style="font-size:10px">GET /api/admin/metrics</code></td><td>240</td><td><span class="latency-good">62ms</span></td><td>0</td><td><span class="sev passed">Normal</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:11px;color:#888">Note: /api/soar/triage and /api/ai/analyse latency includes Claude API call time (avg 1.1s).</div>
+  </div>
+
+  <!-- Compute Metrics -->
+  <div class="card">
+    <div class="card-title">⚡ Lambda Compute Metrics <span class="card-subtitle">US-170, FR-174 · Fargate/EKS at paid tier</span></div>
+
+    <div class="grid-4" style="margin-bottom:14px;gap:8px">
+      <div class="metric"><div class="val">14</div><div class="lbl">Running Tasks</div><div class="sub">+2 in 1h</div></div>
+      <div class="metric"><div class="val amber">38%</div><div class="lbl">CPU Avg</div><div class="sub">Peak: 81%</div></div>
+      <div class="metric"><div class="val green">52%</div><div class="lbl">Memory Avg</div><div class="sub">4/8 GB used</div></div>
+      <div class="metric"><div class="val green">0</div><div class="lbl">Crashes 24h</div><div class="sub">1 last week</div></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Task / Service</th><th>CPU</th><th>Memory</th><th>Count</th><th>Health</th></tr></thead>
+      <tbody>
+        <tr><td>api-gateway-service</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:22%"></div></div><span style="font-size:10px">22%</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div><span style="font-size:10px">45%</span></td>
+          <td>3</td><td><span class="sev passed">Healthy</span></td></tr>
+        <tr><td>scanner-worker (L1–L6)</td>
+          <td><div class="progress-bar"><div class="progress-fill amber" style="width:72%"></div></div><span style="font-size:10px">72%</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div><span style="font-size:10px">68%</span></td>
+          <td>6</td><td><span class="sev passed">Healthy</span></td></tr>
+        <tr><td>l9-agent-worker</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:48%"></div></div><span style="font-size:10px">48%</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:55%"></div></div><span style="font-size:10px">55%</span></td>
+          <td>2</td><td><span class="sev passed">Healthy</span></td></tr>
+        <tr><td>soar-celery-worker</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:18%"></div></div><span style="font-size:10px">18%</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:32%"></div></div><span style="font-size:10px">32%</span></td>
+          <td>2</td><td><span class="sev passed">Healthy</span></td></tr>
+        <tr><td>wazuh-manager</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:28%"></div></div><span style="font-size:10px">28%</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:74%"></div></div><span style="font-size:10px">74%</span></td>
+          <td>1</td><td><span class="sev passed">Healthy</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Application + System Health -->
+<div class="grid-2">
+
+  <!-- Application Metrics -->
+  <div class="card">
+    <div class="card-title">🔬 Application Metrics <span class="card-subtitle">US-174, FR-175</span></div>
+    <div class="tabs">
+      <div class="tab active">Scan Engine</div>
+      <div class="tab">SOAR</div>
+      <div class="tab">AI Analysis</div>
+    </div>
+    <table>
+      <thead><tr><th>Metric</th><th>Today</th><th>7d Avg</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Scans Triggered (all layers)</td><td>142</td><td>118</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>Scan Success Rate</td><td>98.6%</td><td>97.2%</td><td><span class="sev passed">Good</span></td></tr>
+        <tr><td>L1 Recon — Avg Duration (pipeline)</td><td>72s</td><td>68s</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>L2+ VAPT — Avg Duration</td><td>8m 12s</td><td>7m 55s</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>L2 Web AppSec — Avg Duration</td><td>14m 38s</td><td>13m 42s</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>L9 AI Agent — Avg Duration</td><td>7m 02s</td><td>6m 48s</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>Scan Queue Depth (now)</td><td>4 jobs</td><td>—</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>Scan Queue Wait Time</td><td>42s</td><td>38s</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>Rate-Limited Scan Attempts</td><td>18</td><td>12</td><td><span class="sev medium">Elevated</span></td></tr>
+        <tr><td>AI Report Generation — Success</td><td>100%</td><td>99.1%</td><td><span class="sev passed">Excellent</span></td></tr>
+        <tr><td>AI Fallback Activations (outage)</td><td>0</td><td>0.3</td><td><span class="sev passed">None</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- System Health -->
+  <div class="card">
+    <div class="card-title">🏗️ System Health <span class="card-subtitle">US-175, FR-176</span></div>
+    <table>
+      <thead><tr><th>Component</th><th>Metric</th><th>Value</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>MongoDB Atlas</td><td>Connections</td><td>184 / 500</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>MongoDB Atlas</td><td>IOPS (read/write)</td><td>2,840 / 480</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>MongoDB Atlas</td><td>Storage used</td><td>48 GB / 100 GB</td><td><span class="sev passed">48%</span></td></tr>
+        <tr><td>Redis (ElastiCache)</td><td>Memory used</td><td>1.8 GB / 4 GB</td><td><span class="sev passed">45%</span></td></tr>
+        <tr><td>Redis</td><td>Cache hit rate</td><td>84%</td><td><span class="sev passed">Good</span></td></tr>
+        <tr><td>Redis</td><td>Evictions / min</td><td>0</td><td><span class="sev passed">None</span></td></tr>
+        <tr><td>S3 (Scan Reports)</td><td>Objects stored</td><td>18,420</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>S3</td><td>Requests / hr</td><td>3,240</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>Network</td><td>Egress / hr</td><td>4.2 GB</td><td><span class="sev passed">Normal</span></td></tr>
+        <tr><td>SSL Certs</td><td>Expires</td><td>api-staging: 82d · api (prod): dormant</td><td><span class="sev passed">OK</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- API Settings + Alert Thresholds -->
+<div class="grid-2">
+
+  <!-- API Settings Panel -->
+  <div class="card">
+    <div class="card-title">⚙️ API Settings — SOCVault Admin <span class="card-subtitle">US-172, FR-178</span></div>
+    <div class="tabs">
+      <div class="tab active">Rate Limits</div>
+      <div class="tab">CORS Origins</div>
+      <div class="tab">API Keys</div>
+      <div class="tab">Claude Model Config</div>
+    </div>
+
+    <table>
+      <thead><tr><th>Endpoint Group</th><th>Limit</th><th>Window</th><th>Current Usage</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Auth endpoints</td>
+          <td><input style="width:60px;border:1px solid #d1d5db;border-radius:4px;padding:3px 5px;font-size:11px" value="10 req"></td>
+          <td>60s / IP</td>
+          <td>2.4/10 avg</td>
+          <td><button class="btn btn-outline btn-xs">Save</button></td>
+        </tr>
+        <tr>
+          <td>Scan trigger</td>
+          <td><input style="width:60px;border:1px solid #d1d5db;border-radius:4px;padding:3px 5px;font-size:11px" value="5 req"></td>
+          <td>60s / tenant</td>
+          <td>1.1/5 avg</td>
+          <td><button class="btn btn-outline btn-xs">Save</button></td>
+        </tr>
+        <tr>
+          <td>AI analysis (public API)</td>
+          <td><input style="width:60px;border:1px solid #d1d5db;border-radius:4px;padding:3px 5px;font-size:11px" value="20 req"></td>
+          <td>60s / tenant</td>
+          <td>4.2/20 avg</td>
+          <td><button class="btn btn-outline btn-xs">Save</button></td>
+        </tr>
+        <tr>
+          <td>Admin endpoints</td>
+          <td><input style="width:60px;border:1px solid #d1d5db;border-radius:4px;padding:3px 5px;font-size:11px" value="60 req"></td>
+          <td>60s / user</td>
+          <td>8.4/60 avg</td>
+          <td><button class="btn btn-outline btn-xs">Save</button></td>
+        </tr>
+        <tr>
+          <td>Report download</td>
+          <td><input style="width:60px;border:1px solid #d1d5db;border-radius:4px;padding:3px 5px;font-size:11px" value="30 req"></td>
+          <td>60min / tenant</td>
+          <td>6.2/30 avg</td>
+          <td><button class="btn btn-outline btn-xs">Save</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:14px">
+      <div class="form-label">Claude AI Model Configuration</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <select class="form-input" style="flex:2">
+          <option selected>claude-sonnet-4-6 (current — default for all AI features)</option>
+          <option>claude-opus-4-8 (Extended thinking — L9 agent only)</option>
+          <option>claude-haiku-4-5-20251001 (Low-cost for simple categorisation)</option>
+        </select>
+        <button class="btn btn-primary btn-sm">Update</button>
+      </div>
+      <div class="form-hint">Model used for: scan analysis, SOAR triage, AI chat, financial reports. L9 agent uses claude-opus-4-8 for extended thinking.</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="form-label">Active CORS Origins</div>
+      <div class="code-block">
+Allowed: https://app-staging.socvault.io
+         https://api-staging.socvault.io
+         https://app.socvault.io [post-cutover]
+         https://admin.socvault.io
+         https://msp.socvault.io</div>
+      <button class="btn btn-outline btn-xs">Edit Origins</button>
+    </div>
+  </div>
+
+  <!-- Alert Thresholds -->
+  <div class="card">
+    <div class="card-title">🔔 Alert Thresholds <span class="card-subtitle">US-173, FR-179</span></div>
+    <div class="form-hint" style="margin-bottom:12px">Breach triggers: PagerDuty (critical) · Slack #alerts (high) · Email (medium)</div>
+
+    <div style="font-size:11px;font-weight:600;color:#888;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 0;border-bottom:1px solid #e0e8e0;margin-bottom:4px">
+      <span>Metric</span><span>Threshold</span><span>Current</span><span>Status</span>
+    </div>
+
+    <div class="threshold-row">
+      <div class="threshold-metric">AWS Cost / day</div>
+      <div class="threshold-val"><input value="$200"></div>
+      <div class="threshold-current">$127.42</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">Claude AI Cost / day</div>
+      <div class="threshold-val"><input value="$50"></div>
+      <div class="threshold-current">$48.20</div>
+      <div class="threshold-status"><span class="sev high">Alert! 96%</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">API Error Rate (5min)</div>
+      <div class="threshold-val"><input value="1%"></div>
+      <div class="threshold-current">0.07%</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">Scan Queue Depth</div>
+      <div class="threshold-val"><input value="20 jobs"></div>
+      <div class="threshold-current">4 jobs</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">Fargate CPU Avg</div>
+      <div class="threshold-val"><input value="80%"></div>
+      <div class="threshold-current">38%</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">MongoDB Connections</div>
+      <div class="threshold-val"><input value="400"></div>
+      <div class="threshold-current">184</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">Redis Memory</div>
+      <div class="threshold-val"><input value="80%"></div>
+      <div class="threshold-current">45%</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+    <div class="threshold-row">
+      <div class="threshold-metric">API p99 Latency</div>
+      <div class="threshold-val"><input value="3000ms"></div>
+      <div class="threshold-current">1,840ms</div>
+      <div class="threshold-status"><span class="sev passed">OK</span></div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm">Save All Thresholds</button>
+      <button class="btn btn-outline btn-sm">Test Alerts</button>
+      <button class="btn btn-outline btn-sm">View Alert History</button>
+    </div>
+
+    <div class="alert-strip high" style="margin-top:12px">
+      <span>⚠</span>
+      <div><strong>Claude AI cost at 96% of daily cap ($50).</strong> At current burn rate, cap will be reached in ~1.4 hours. 3 tenants are running scans. Consider raising the cap or pausing low-priority scans.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Nano-Level Drill Down -->
+<div class="card">
+  <div class="card-title">🔬 Nano-Level Drill Down — Per-Request Trace <span class="card-subtitle">US-171, FR-177</span></div>
+  <div class="alert-strip info">
+    <span>📡</span>
+    <div>Click any API request in the table above to open a per-request trace. Shows: route → auth middleware → rate limiter → handler → DB query → Claude API call → response. Times breakdown to microsecond level.</div>
+  </div>
+  <table>
+    <thead><tr><th>Request ID</th><th>Timestamp</th><th>Endpoint</th><th>Tenant</th><th>Total Time</th><th>DB Time</th><th>AI Time</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr style="cursor:pointer">
+        <td><code style="font-size:10px">req_4f2a1b</code></td>
+        <td>11:28:42.104</td>
+        <td><code style="font-size:10px">POST /api/scans/trigger</code></td>
+        <td>Acme Corp</td>
+        <td><span class="latency-good">142ms</span></td>
+        <td>38ms</td>
+        <td>—</td>
+        <td><span class="sev passed">200 OK</span></td>
+      </tr>
+      <tr style="cursor:pointer">
+        <td><code style="font-size:10px">req_7c9d3e</code></td>
+        <td>11:28:39.881</td>
+        <td><code style="font-size:10px">POST /api/ai/analyse</code></td>
+        <td>PrimeCare Health</td>
+        <td><span class="latency-warn">2,184ms</span></td>
+        <td>12ms</td>
+        <td>2,142ms</td>
+        <td><span class="sev passed">200 OK</span></td>
+      </tr>
+      <tr style="cursor:pointer">
+        <td><code style="font-size:10px">req_2b8f9a</code></td>
+        <td>11:28:31.220</td>
+        <td><code style="font-size:10px">POST /api/soar/triage</code></td>
+        <td>Internal — SOAR</td>
+        <td><span class="latency-warn">1,480ms</span></td>
+        <td>22ms</td>
+        <td>1,441ms</td>
+        <td><span class="sev passed">200 OK</span></td>
+      </tr>
+      <tr style="cursor:pointer">
+        <td><code style="font-size:10px">req_9e1c4d</code></td>
+        <td>11:28:18.553</td>
+        <td><code style="font-size:10px">GET /api/reports/R-0812</code></td>
+        <td>SpamCorp</td>
+        <td><span class="latency-bad">4,820ms</span></td>
+        <td>4,802ms</td>
+        <td>—</td>
+        <td><span class="sev medium">200 OK (slow)</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:10px;font-size:11px;color:#888">Last row: MongoDB slow query detected (missing index on tenant_id + report_id). <a href="#" style="color:#4CC844;font-weight:600">Open query analyser →</a></div>
+</div>
+
+</div>
+</body>
+</html>

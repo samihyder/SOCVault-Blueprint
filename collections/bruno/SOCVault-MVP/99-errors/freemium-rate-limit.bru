@@ -1,0 +1,36 @@
+meta {
+  name: Freemium Rate Limit
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/scan/execute
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "layer": "RECON",
+    "target": "{{test_domain}}",
+    "consent": true
+  }
+}
+
+docs {
+  FR-026. Run after a successful L1 scan in the same calendar month.
+  Expect 429 with code FREEMIUM_SCAN_LIMIT.
+}
+
+tests {
+  test("status is 429 when rate limited", function() {
+    if (res.status === 429) {
+      expect(res.body.code).to.equal("FREEMIUM_SCAN_LIMIT");
+    }
+  });
+}

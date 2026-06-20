@@ -1,0 +1,28 @@
+meta {
+  name: Get Scan by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/scan/{{scan_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  Poll every 3s until status is COMPLETE or FAILED.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("has scan status", function() {
+    expect(res.body.status).to.be.oneOf(["QUEUED", "RUNNING", "COMPLETE", "FAILED", "CANCELLED"]);
+  });
+}

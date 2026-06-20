@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — Development Tracker</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.main { margin-left:210px; margin-top:52px; padding:18px 20px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub { font-size:12px; color:#888; margin-bottom:14px; }
+.breadcrumb { font-size:11px; color:#888; margin-bottom:12px; }
+.breadcrumb a { color:#4CC844; font-weight:600; }
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:14px; margin-bottom:12px; }
+.card-title { font-size:12px; font-weight:700; color:#1B3D35; margin-bottom:10px;
+  padding-bottom:6px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:6px; }
+.card-subtitle { font-size:9px; color:#888; margin-left:auto; font-weight:500; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.metric { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:14px; text-align:center; }
+.metric .val { font-size:24px; font-weight:800; color:#1B3D35; line-height:1; }
+.metric .val.green { color:#4CC844; }
+.metric .val.amber { color:#F59E0B; }
+.metric .val.red { color:#DC2626; }
+.metric .lbl { font-size:9px; color:#888; margin-top:5px; font-weight:600; text-transform:uppercase; }
+.metric .sub { font-size:10px; color:#aaa; margin-top:3px; }
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:12px; flex-wrap:wrap; }
+.tab { padding:7px 14px; font-size:11px; font-weight:600; color:#888; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+table { width:100%; border-collapse:collapse; font-size:11px; }
+thead th { background:#1B3D35; color:#fff; font-size:10px; font-weight:600; padding:8px 10px; text-align:left; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody td { padding:7px 10px; border-bottom:1px solid #e0e8e0; vertical-align:middle; }
+.st { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+.st-live { background:#22C55E; }
+.st-progress { background:#F59E0B; }
+.st-not { background:#DC2626; }
+.st-spec { background:#93C5FD; }
+.st-block { background:#6B7280; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px; }
+.sev.passed { background:#D1FAE5; color:#065F46; }
+.sev.medium { background:#FEF3C7; color:#92400E; }
+.sev.critical { background:#FECACA; color:#991B1B; }
+.progress-bar { height:8px; background:#e0e8e0; border-radius:4px; overflow:hidden; margin:4px 0; }
+.progress-fill { height:100%; background:#4CC844; border-radius:4px; }
+.progress-fill.amber { background:#F59E0B; }
+.alert-strip { padding:9px 12px; border-radius:6px; font-size:11px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.alert-strip.info { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+.form-input, .form-select { padding:6px 9px; border:1.5px solid #d1d5db; border-radius:6px; font-size:11px; width:100%; }
+.form-label { font-size:10px; font-weight:600; color:#1B3D35; margin-bottom:3px; display:block; }
+.form-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px; padding:8px 10px; font-size:10px; color:#92400E; margin-bottom:10px; }
+.phase-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:11px; }
+.phase-name { flex:2; font-weight:600; color:#1B3D35; }
+.phase-pct { flex:2; }
+.phase-st { min-width:70px; text-align:right; }
+.log-new { background:#F0FDF4; border:1.5px solid #4CC844; border-radius:8px; padding:12px; margin-bottom:12px; }
+.cat-pill { font-size:8px; font-weight:700; padding:2px 6px; border-radius:8px; background:#E8F0E8; color:#1B3D35; }
+.cat-infra { background:#DBEAFE; color:#1E40AF; }
+.cat-docs { background:#FEF3C7; color:#92400E; }
+.cat-api { background:#D1FAE5; color:#065F46; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">INTERNAL · SUPERADMIN</span>
+    <div class="avatar">SA</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="25-admin-dev-tracker.html" class="active"><span class="ico">📊</span>Development Tracker</a>
+  <a href="24-admin-api-explorer.html"><span class="ico">🧪</span>API Explorer</a>
+  <a href="22-socvault-team-admin.html"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html"><span class="ico">📈</span>Metrics Observatory</a>
+  <a href="00-index.html"><span class="ico">📋</span>All Wireframes</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:8px">
+  <span class="story-ref">US-194</span><span class="story-ref">US-195</span><span class="story-ref">US-196</span>
+  <span class="story-ref">US-197</span><span class="story-ref">US-198</span><span class="story-ref">US-199</span>
+  <span class="story-ref">US-200</span>
+</div>
+
+<div class="breadcrumb">
+  <a href="19-admin.html">Admin Console</a> <span>›</span> Development Tracker
+</div>
+
+<div class="page-title">Product Development Tracker</div>
+<div class="page-sub">Live stack status · infrastructure · application · action log · syncs with <code>DEVELOPMENT_TRACKER.md</code> · FR-208–FR-215</div>
+
+<div class="alert-strip info">
+  <span>📋</span>
+  <span><strong>Source of truth:</strong> repo file + MongoDB <code>dev_tracker_*</code> collections. Every status change and action is audit-logged. Manager &amp; DevOps can edit; others read-only.</span>
+</div>
+
+<div class="toolbar">
+  <span style="font-size:11px;color:#666">Phase <strong>0 — Foundation</strong> · Last sync <strong>2026-06-18 14:32 UTC</strong></span>
+  <div class="spacer"></div>
+  <button class="btn btn-outline btn-sm">↻ Run stack health probes</button>
+  <button class="btn btn-outline btn-sm">Export markdown</button>
+  <button class="btn btn-primary btn-sm">+ Log action</button>
+</div>
+
+<div class="grid-4">
+  <div class="metric"><div class="val green">2</div><div class="lbl">Live (blueprint)</div><div class="sub">Bruno · wireframes</div></div>
+  <div class="metric"><div class="val amber">1</div><div class="lbl">In progress</div><div class="sub">Phase 0 blueprint</div></div>
+  <div class="metric"><div class="val red">0</div><div class="lbl">Runtime live</div><div class="sub">API · AWS · DB</div></div>
+  <div class="metric"><div class="val">45%</div><div class="lbl">Phase 0 complete</div><div class="sub">Next: INF-001</div></div>
+</div>
+
+<div class="grid-2">
+
+  <!-- Stack live matrix -->
+  <div class="card">
+    <div class="card-title">Stack live status <span class="card-subtitle">US-194, FR-208</span></div>
+    <table>
+      <thead><tr><th>Layer</th><th>Blueprint</th><th>Staging</th><th>Production</th></tr></thead>
+      <tbody>
+        <tr><td>Amplify (frontend)</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>API Gateway + Lambda</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>MongoDB Atlas M0</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>SQS + Lambda (async)</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>L1 Lambda scanner</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>Cognito</td><td><span class="st st-spec"></span>Spec</td><td><span class="st st-not"></span>Off</td><td><span class="st st-not"></span>Dormant</td></tr>
+        <tr><td>Bruno / OpenAPI</td><td><span class="st st-live"></span>Live</td><td>—</td><td>—</td></tr>
+        <tr><td>Blueprint docs</td><td><span class="st st-live"></span>Live</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:8px;font-size:10px;color:#888">
+      <span class="st st-live"></span> Live &nbsp;
+      <span class="st st-progress"></span> In progress &nbsp;
+      <span class="st st-not"></span> Not started &nbsp;
+      <span class="st st-spec"></span> Spec only
+    </div>
+  </div>
+
+  <!-- Phase progress -->
+  <div class="card">
+    <div class="card-title">Phase &amp; milestones <span class="card-subtitle">US-200, FR-212</span></div>
+    <div class="phase-row">
+      <div class="phase-name">Phase 0 — Foundation</div>
+      <div class="phase-pct"><div class="progress-fill amber" style="width:45%;height:8px;border-radius:4px"></div></div>
+      <div class="phase-st"><span class="sev medium">45%</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">Phase 1 — Cloud MVP (staging)</div>
+      <div class="phase-pct"><div class="progress-fill" style="width:0%;height:8px;border-radius:4px;background:#e0e8e0"></div></div>
+      <div class="phase-st"><span class="sev critical">0%</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">Phase 2 — Beta &amp; scale</div>
+      <div class="phase-pct"><div class="progress-fill" style="width:0%;height:8px;border-radius:4px;background:#e0e8e0"></div></div>
+      <div class="phase-st"><span class="sev critical">0%</span></div>
+    </div>
+    <div style="margin-top:12px;font-size:11px">
+      <strong>Next action:</strong> INF-001 · Create AWS account + billing alerts
+      <button class="btn btn-outline btn-xs" style="margin-left:6px">Mark done</button>
+    </div>
+    <table style="margin-top:10px">
+      <thead><tr><th>Milestone</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>2.1a AWS Free Tier</td><td><span class="st st-not"></span> Not started</td></tr>
+        <tr><td>2.9 API Explorer</td><td><span class="st st-spec"></span> Spec only</td></tr>
+        <tr><td>2.10 Dev Tracker UI</td><td><span class="st st-spec"></span> Wireframe</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Log action form (expanded) -->
+<div class="log-new">
+  <div class="card-title" style="border:none;padding:0;margin-bottom:8px">Log new action <span class="card-subtitle">US-198, FR-210</span></div>
+  <div class="form-row">
+    <div><label class="form-label">Category</label>
+      <select class="form-select"><option>infra</option><option>dev</option><option>api</option><option>frontend</option><option>docs</option><option>test</option><option>deploy</option></select></div>
+    <div><label class="form-label">Ref ID</label><input class="form-input" placeholder="INF-001, 2.9.1, ACT-025"></div>
+    <div><label class="form-label">Result</label>
+      <select class="form-select"><option>verified</option><option>partial</option><option>blocked</option></select></div>
+  </div>
+  <div style="margin-top:8px"><label class="form-label">Summary</label>
+    <input class="form-input" placeholder="AWS account created, root MFA enabled, $10 budget set"></div>
+  <div style="margin-top:10px;display:flex;gap:8px">
+    <button class="btn btn-primary btn-sm">Save action (ACT-025)</button>
+    <span style="font-size:10px;color:#888;align-self:center">Auto-updates checklist row + exports to DEVELOPMENT_TRACKER.md on sync</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active">Infrastructure (INF)</div>
+  <div class="tab">Dev stack (DEV)</div>
+  <div class="tab">API endpoints (API)</div>
+  <div class="tab">External accounts (EXT)</div>
+  <div class="tab">Action log</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Infrastructure checklist <span class="card-subtitle">US-195, FR-209</span></div>
+  <div class="wf-note">Rows link to <code>AWS_SETUP_README.md</code>. Status editable by Manager/DevOps. Verified date required when marking 🟢 Live.</div>
+  <table>
+    <thead><tr><th>ID</th><th>Action</th><th>Roadmap</th><th>Status</th><th>Verified</th><th>Notes</th><th></th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>INF-001</strong></td>
+        <td>AWS account + root MFA</td>
+        <td>0.2.6</td>
+        <td><select class="form-select" style="width:110px;padding:3px"><option selected>🔴 Not started</option><option>🟡 In progress</option><option>🟢 Live</option><option>⏸ Blocked</option></select></td>
+        <td>—</td>
+        <td><input class="form-input" style="padding:3px" placeholder="Notes"></td>
+        <td><button class="btn btn-outline btn-xs">Save</button></td>
+      </tr>
+      <tr>
+        <td><strong>INF-012</strong></td>
+        <td>API Gateway + Lambda + Amplify</td>
+        <td>0.1.5 / 23</td>
+        <td><select class="form-select" style="width:110px;padding:3px"><option selected>🔴 Not started</option></select></td>
+        <td>—</td>
+        <td>SQS + Lambda worker</td>
+        <td><button class="btn btn-outline btn-xs">Save</button></td>
+      </tr>
+      <tr>
+        <td><strong>INF-016</strong></td>
+        <td>Bruno green vs public API</td>
+        <td>2.1.10</td>
+        <td><select class="form-select" style="width:110px;padding:3px"><option selected>🔴 Not started</option></select></td>
+        <td>—</td>
+        <td>Blocked by INF-012</td>
+        <td><button class="btn btn-outline btn-xs">Save</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">Action log <span class="card-subtitle">US-199, FR-211</span></div>
+  <div class="toolbar" style="margin-bottom:8px">
+    <input class="form-input" style="width:180px" placeholder="Filter ACT / INF / keyword…">
+    <select class="form-select" style="width:100px"><option>All categories</option><option>infra</option><option>docs</option><option>api</option></select>
+    <select class="form-select" style="width:100px"><option>All results</option><option>verified</option><option>blocked</option></select>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Date</th><th>Cat</th><th>Ref</th><th>Summary</th><th>Result</th><th>By</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>ACT-024</strong></td>
+        <td>2026-06-18</td>
+        <td><span class="cat-pill cat-docs">docs</span></td>
+        <td>2.9</td>
+        <td>Created API Explorer implementation guide</td>
+        <td><span class="sev passed">verified</span></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>ACT-023</strong></td>
+        <td>2026-06-18</td>
+        <td><span class="cat-pill cat-docs">docs</span></td>
+        <td>AWS</td>
+        <td>AWS Setup README Free Tier MVP guide</td>
+        <td><span class="sev passed">verified</span></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>ACT-003</strong></td>
+        <td>2026-06-18</td>
+        <td><span class="cat-pill cat-docs">docs</span></td>
+        <td>tracker</td>
+        <td>Created DEVELOPMENT_TRACKER.md</td>
+        <td><span class="sev passed">verified</span></td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="alert-strip success">
+  <span>✓</span>
+  <span><strong>Stack health probe</strong> (optional): pings <code>GET /health</code>, Atlas connectivity, S3 head-bucket, Lambda list — updates stack matrix automatically when enabled (FR-213).</span>
+</div>
+
+</div>
+</body>
+</html>

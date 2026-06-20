@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOCVault Wireframe — L9 AI Agent Security Scan</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#F4F6F4; color:#222; font-size:13px; }
+a { text-decoration:none; color:inherit; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+  background:#1B3D35; height:52px; padding:0 20px; position:fixed; top:0; left:0; right:0; z-index:100; }
+.topbar-logo { font-size:17px; font-weight:700; color:#4CC844; letter-spacing:.5px; }
+.topbar-logo span { color:#fff; font-weight:400; font-size:13px; margin-left:6px; }
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.topbar-right .badge { background:#4CC844; color:#1B3D35; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.topbar-right .avatar { width:32px; height:32px; border-radius:50%; background:#4CC844;
+  display:flex; align-items:center; justify-content:center; color:#1B3D35; font-weight:700; font-size:12px; }
+.topbar-right .notif { color:#aaa; font-size:16px; cursor:pointer; position:relative; }
+.topbar-right .notif .dot { position:absolute; top:0; right:0; width:7px; height:7px;
+  background:#DC2626; border-radius:50%; border:1.5px solid #1B3D35; }
+.sidebar { position:fixed; top:52px; left:0; bottom:0; width:210px;
+  background:#1B3D35; overflow-y:auto; padding:12px 0; }
+.sidebar-section { font-size:9px; font-weight:700; color:#4CC844; letter-spacing:1.5px;
+  padding:14px 16px 5px; text-transform:uppercase; }
+.sidebar a { display:flex; align-items:center; gap:9px; padding:8px 16px;
+  color:#b8d4c8; font-size:12px; font-weight:500; transition:background .15s; border-left:3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { background:rgba(76,200,68,.12); color:#fff; border-left-color:#4CC844; }
+.sidebar a .ico { font-size:14px; width:18px; text-align:center; }
+.sidebar a .badge-count { margin-left:auto; background:#DC2626; color:#fff; font-size:9px;
+  font-weight:700; padding:1px 5px; border-radius:9px; }
+.main { margin-left:210px; margin-top:52px; padding:22px 24px; min-height:calc(100vh - 52px); }
+.story-ref { display:inline-block; font-size:9px; font-weight:700; background:#E8F0E8;
+  color:#1B3D35; padding:2px 6px; border-radius:4px; margin:0 2px 2px 0; border:1px solid #b8d4c8; }
+.card { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:18px; margin-bottom:16px; }
+.card-title { font-size:13px; font-weight:700; color:#1B3D35; margin-bottom:12px;
+  padding-bottom:8px; border-bottom:2px solid #4CC844; display:flex; align-items:center; gap:8px; }
+.card-subtitle { font-size:10px; color:#888; margin-left:auto; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
+.metric { background:#fff; border-radius:8px; border:1px solid #e0e8e0; padding:16px; text-align:center; }
+.metric .val { font-size:26px; font-weight:800; color:#1B3D35; line-height:1; }
+.metric .val.green { color:#4CC844; }
+.metric .val.red { color:#DC2626; }
+.metric .val.amber { color:#F59E0B; }
+.metric .lbl { font-size:10px; color:#888; margin-top:5px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.metric .sub { font-size:10px; color:#aaa; margin-top:3px; }
+.sev { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.sev.critical { background:#FECACA; color:#991B1B; }
+.sev.high     { background:#FED7AA; color:#9A3412; }
+.sev.medium   { background:#FEF3C7; color:#92400E; }
+.sev.low      { background:#D1FAE5; color:#065F46; }
+.sev.info     { background:#DBEAFE; color:#1E40AF; }
+.sev.passed   { background:#D1FAE5; color:#065F46; }
+.status { display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.status.active   { background:#D1FAE5; color:#065F46; }
+.status.inactive { background:#F3F4F6; color:#6B7280; }
+.status.running  { background:#DBEAFE; color:#1E40AF; }
+.status.done     { background:#D1FAE5; color:#065F46; }
+.status.blocked  { background:#FECACA; color:#991B1B; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th { background:#1B3D35; color:#fff; font-size:11px; font-weight:600; padding:9px 12px; text-align:left; }
+thead th:first-child { border-radius:6px 0 0 0; }
+thead th:last-child  { border-radius:0 6px 0 0; }
+tbody tr:nth-child(even) { background:#F4F6F4; }
+tbody tr:hover { background:#E8F0E8; }
+tbody td { padding:8px 12px; border-bottom:1px solid #e0e8e0; color:#444; vertical-align:middle; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; }
+.btn-primary { background:#4CC844; color:#1B3D35; }
+.btn-secondary { background:#1B3D35; color:#fff; }
+.btn-outline { background:transparent; color:#1B3D35; border:1.5px solid #1B3D35; }
+.btn-danger { background:#DC2626; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-xs { padding:2px 7px; font-size:10px; }
+.form-group { margin-bottom:14px; }
+.form-label { font-size:11px; font-weight:600; color:#1B3D35; margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:8px 10px; border:1.5px solid #d1d5db; border-radius:6px;
+  font-size:12px; color:#222; background:#fff; }
+.form-input:focus { outline:none; border-color:#4CC844; }
+.form-hint { font-size:10px; color:#888; margin-top:3px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tabs { display:flex; gap:0; border-bottom:2px solid #e0e8e0; margin-bottom:16px; }
+.tab { padding:8px 16px; font-size:12px; font-weight:600; color:#888; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab.active { color:#1B3D35; border-bottom-color:#4CC844; }
+.progress-bar { height:8px; background:#e0e8e0; border-radius:4px; overflow:hidden; margin:4px 0; }
+.progress-fill { height:100%; border-radius:4px; background:#4CC844; }
+.progress-fill.red { background:#DC2626; }
+.progress-fill.amber { background:#F59E0B; }
+.alert-strip { padding:10px 14px; border-radius:6px; font-size:12px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; }
+.alert-strip.critical { background:#FEF2F2; border-left:4px solid #DC2626; color:#991B1B; }
+.alert-strip.high     { background:#FFF7ED; border-left:4px solid #F59E0B; color:#92400E; }
+.alert-strip.info     { background:#EFF6FF; border-left:4px solid #3B82F6; color:#1E40AF; }
+.alert-strip.success  { background:#F0FDF4; border-left:4px solid #22C55E; color:#166534; }
+.page-title { font-size:18px; font-weight:800; color:#1B3D35; margin-bottom:4px; }
+.page-sub   { font-size:12px; color:#888; margin-bottom:18px; }
+.toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.search-box { padding:7px 12px; border:1.5px solid #d1d5db; border-radius:6px; font-size:12px; width:200px; }
+.wf-note { background:#fffbeb; border:1px dashed #f59e0b; border-radius:6px;
+  padding:8px 12px; font-size:10px; color:#92400E; margin-bottom:12px; }
+.code-block { background:#1e2d2a; border-radius:6px; padding:12px 14px;
+  font-family:'Courier New',monospace; font-size:11px; color:#4CC844; overflow-x:auto; margin:8px 0; }
+.checklist { list-style:none; }
+.checklist li { padding:5px 0; font-size:12px; display:flex; align-items:center; gap:8px; }
+.checklist li::before { content:'✓'; color:#4CC844; font-weight:700; }
+.checklist li.fail::before { content:'✗'; color:#DC2626; }
+.checklist li.warn::before { content:'⚠'; color:#F59E0B; }
+.fin-box { background:linear-gradient(135deg,#1B3D35,#2a5a4a); border-radius:10px;
+  padding:18px; color:#fff; margin-bottom:16px; }
+.fin-box .amount { font-size:32px; font-weight:800; color:#4CC844; }
+.fin-box .label  { font-size:11px; color:#b8d4c8; margin-top:4px; }
+
+/* AI AGENT SPECIFIC */
+.ai-badge { display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg,#1B3D35,#2a5a4a);
+  color:#4CC844; font-size:10px; font-weight:700; padding:3px 9px; border-radius:10px; border:1px solid #4CC844; }
+.agent-log { background:#0d1f1a; border-radius:8px; padding:14px; max-height:320px; overflow-y:auto; }
+.agent-log-item { display:flex; gap:10px; padding:6px 0; border-bottom:1px solid rgba(76,200,68,.1); }
+.agent-log-item:last-child { border-bottom:none; }
+.agent-log-time { font-family:'Courier New',monospace; font-size:10px; color:#4a7a5a; min-width:60px; }
+.agent-log-type { font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; min-width:68px; text-align:center; }
+.agent-log-type.think { background:#1e3a5f; color:#60a5fa; }
+.agent-log-type.tool  { background:#3b2f00; color:#f59e0b; }
+.agent-log-type.find  { background:#3b0f0f; color:#f87171; }
+.agent-log-type.done  { background:#0f3b1e; color:#4CC844; }
+.agent-log-msg { font-family:'Courier New',monospace; font-size:11px; color:#b8d4c8; line-height:1.5; flex:1; }
+.rate-limit-bar { background:#fff; border:1.5px solid #e0e8e0; border-radius:8px; padding:12px 16px;
+  display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.rate-limit-icon { font-size:20px; }
+.rate-limit-info { flex:1; }
+.rate-limit-info strong { font-size:12px; color:#1B3D35; display:block; }
+.rate-limit-info span { font-size:11px; color:#888; }
+.rate-limit-count { font-size:22px; font-weight:800; color:#4CC844; }
+.rate-limit-count.used { color:#DC2626; }
+.rate-limit-count.warn { color:#F59E0B; }
+.rate-limit-countdown { font-size:11px; color:#888; text-align:right; }
+.scope-tag { display:inline-block; background:#E8F0E8; border:1px solid #b8d4c8; color:#1B3D35;
+  font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin:2px; cursor:pointer; }
+.scope-tag.selected { background:#4CC844; color:#1B3D35; border-color:#4CC844; }
+.consent-box { background:#F0FDF4; border:1.5px solid #22C55E; border-radius:8px; padding:14px; margin-bottom:14px; }
+.consent-box label { display:flex; align-items:flex-start; gap:10px; font-size:12px; color:#166534; cursor:pointer; }
+.agent-pulse { display:inline-block; width:8px; height:8px; border-radius:50%; background:#4CC844;
+  animation:pulse 1.2s infinite; margin-right:6px; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.3)} }
+.finding-row { border:1px solid #e0e8e0; border-radius:6px; padding:12px 14px; margin-bottom:8px;
+  display:flex; align-items:flex-start; gap:12px; background:#fff; }
+.finding-left { min-width:60px; }
+.finding-body { flex:1; }
+.finding-title { font-size:12px; font-weight:700; color:#1B3D35; }
+.finding-desc { font-size:11px; color:#666; margin-top:3px; line-height:1.5; }
+.finding-meta { font-size:10px; color:#888; margin-top:5px; }
+.confidence-chip { display:inline-block; font-size:9px; font-weight:700; padding:2px 6px;
+  border-radius:4px; background:#DBEAFE; color:#1E40AF; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">SOCVault <span>— The Unified AI-Enabled Cybersecurity Solution</span></div>
+  <div class="topbar-right">
+    <span class="badge">SOC Pro</span>
+    <div class="notif">🔔<span class="dot"></span></div>
+    <div class="avatar">JD</div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-section">Overview</div>
+  <a href="02-dashboard.html"><span class="ico">🏠</span>Dashboard</a>
+  <a href="17-settings.html"><span class="ico">🌐</span>Domains & Assets</a>
+  <div class="sidebar-section">Scan Layers</div>
+  <a href="03-l1-recon.html"><span class="ico">🔍</span>L1 — Free Recon</a>
+  <a href="05-l2-web.html"><span class="ico">🕸️</span>L2 — Web AppSec</a>
+  <a href="06-l3-mobile.html"><span class="ico">📱</span>L3 — Mobile</a>
+  <a href="07-l4-api.html"><span class="ico">⚡</span>L4 — API Security</a>
+  <a href="08-l5-compliance.html"><span class="ico">📋</span>L5 — Compliance</a>
+  <a href="09-l6-cloud.html"><span class="ico">☁️</span>L6 — Cloud</a>
+  <a href="10-l7-soc.html"><span class="ico">🛡️</span>L7 — SOC/SIEM<span class="badge-count">3</span></a>
+  <a href="11-l8-malware.html"><span class="ico">🦠</span>L8 — Malware<span class="badge-count">1</span></a>
+  <a href="20-l9-ai-scan.html" class="active"><span class="ico">✦</span>L9 — AI Agent Scan</a>
+  <div class="sidebar-section">Platform</div>
+  <a href="12-ai-chat.html"><span class="ico">💬</span>AI Chat Assistant</a>
+  <a href="13-soar.html"><span class="ico">⚙️</span>SOAR & Playbooks</a>
+  <a href="04-l1-report.html"><span class="ico">📄</span>AI Risk Report</a>
+  <a href="14-billing.html"><span class="ico">💳</span>Billing</a>
+  <a href="15-msp-portal.html"><span class="ico">🏢</span>MSP Portal</a>
+  <a href="21-tenant-teams.html"><span class="ico">👥</span>Team & Sub-Users</a>
+  <a href="16-notifications.html"><span class="ico">🔔</span>Notifications<span class="badge-count">5</span></a>
+  <a href="17-settings.html"><span class="ico">⚙️</span>Settings</a>
+  <a href="18-audit-log.html"><span class="ico">📜</span>Audit Log</a>
+  <div class="sidebar-section">Admin</div>
+  <a href="19-admin.html"><span class="ico">🔧</span>Admin Console</a>
+  <a href="22-socvault-team-admin.html"><span class="ico">👔</span>Team Administration</a>
+  <a href="23-metrics-observatory.html"><span class="ico">📈</span>Metrics Observatory</a>
+</div>
+
+<div class="main">
+
+<div style="margin-bottom:10px">
+  <span class="story-ref">US-130</span><span class="story-ref">US-131</span><span class="story-ref">US-132</span>
+  <span class="story-ref">US-133</span><span class="story-ref">US-134</span><span class="story-ref">US-135</span>
+  <span class="story-ref">US-136</span><span class="story-ref">US-137</span><span class="story-ref">US-138</span>
+  <span class="story-ref">US-139</span><span class="story-ref">US-140</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+  <div class="page-title" style="margin-bottom:0">L9 — AI Agent Security Scan</div>
+  <span class="ai-badge">✦ Powered by Claude Security</span>
+  <span style="background:#FEF3C7;color:#92400E;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;border:1px solid #F59E0B">SOC Pro & Enterprise Only</span>
+</div>
+<div class="page-sub">Autonomous AI-driven security assessment — Claude Security iteratively probes, reasons, and reports vulnerabilities across your application surface.</div>
+
+<div class="wf-note">⚡ Wireframe state: scan completed. Agent ran 18 steps across 4 tool categories in 6m 43s. 9 findings generated.</div>
+
+<!-- Rate Limit Banner -->
+<div class="rate-limit-bar">
+  <div class="rate-limit-icon">🗓️</div>
+  <div class="rate-limit-info">
+    <strong>AI Agent Scan Rate Limit — 1 scan per 7 days</strong>
+    <span>Industry standard for autonomous AI security assessments. Resets every Monday 00:00 UTC.</span>
+  </div>
+  <div style="text-align:right">
+    <div class="rate-limit-count">1 / 1</div>
+    <div class="rate-limit-countdown">Used this week<br><span style="color:#DC2626;font-weight:700">Next available: Mon 23 Jun</span></div>
+  </div>
+</div>
+
+<!-- Scan Rate Limits for All Modules -->
+<div class="alert-strip info" style="margin-bottom:16px">
+  <span>📋</span>
+  <div>
+    <strong>Platform Scan Limits (applies to all modules except L7 SOC/SIEM and L8 Malware):</strong>
+    <span style="margin-left:8px">L1 Recon: 2/week · L2 Web AppSec: 1/15 days · L3 Mobile: 1/15 days · L4 API: 2/week · L5 Compliance: 1/30 days · L6 Cloud: 1/15 days · L9 AI Agent: 1/7 days</span>
+  </div>
+</div>
+
+<div class="grid-4" style="margin-bottom:16px">
+  <div class="metric"><div class="val green">9</div><div class="lbl">Findings</div><div class="sub">2 critical, 3 high</div></div>
+  <div class="metric"><div class="val">18</div><div class="lbl">Agent Steps</div><div class="sub">6m 43s total</div></div>
+  <div class="metric"><div class="val amber">4,821</div><div class="lbl">Tokens Used</div><div class="sub">~$0.14 cost</div></div>
+  <div class="metric"><div class="val green">97%</div><div class="lbl">Avg Confidence</div><div class="sub">Claude Security</div></div>
+</div>
+
+<div class="grid-2">
+
+  <!-- LEFT: Scan Configuration + Agent Activity -->
+  <div>
+    <div class="card">
+      <div class="card-title">🎯 Scan Configuration <span class="card-subtitle">US-130, US-131</span></div>
+      <div class="form-group">
+        <label class="form-label">Target Application URL</label>
+        <input class="form-input" value="https://app.acmecorp.com" readonly>
+        <div class="form-hint">Must be within your registered domain (acmecorp.com). Subdomain scanning included.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Scan Scope — Select what the AI agent should assess</label>
+        <div style="margin-top:6px">
+          <span class="scope-tag selected">Authentication</span>
+          <span class="scope-tag selected">Authorisation</span>
+          <span class="scope-tag selected">Input Validation</span>
+          <span class="scope-tag selected">Session Management</span>
+          <span class="scope-tag selected">Business Logic</span>
+          <span class="scope-tag">File Upload</span>
+          <span class="scope-tag">Payment Flows</span>
+          <span class="scope-tag">Admin Panels</span>
+          <span class="scope-tag">API Endpoints</span>
+          <span class="scope-tag">CSRF</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Agent Depth</label>
+          <select class="form-input">
+            <option>Standard (recommended)</option>
+            <option>Deep — Extended thinking enabled</option>
+            <option>Quick — Surface sweep only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Agent Steps</label>
+          <input class="form-input" value="25 steps (SOC Pro limit)">
+        </div>
+      </div>
+
+      <div class="consent-box">
+        <label>
+          <input type="checkbox" checked>
+          <div>
+            <strong style="display:block;margin-bottom:3px">I authorise SOCVault to deploy an AI security agent against the target above.</strong>
+            I confirm I am the authorised owner or have written permission to test this application.
+            I understand the agent will send probes that may appear in server logs.
+            <span style="color:#166534;font-weight:600">Logged & time-stamped.</span>
+          </div>
+        </label>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1">✦ Launch AI Agent Scan</button>
+        <button class="btn btn-outline">Schedule</button>
+      </div>
+      <div class="form-hint" style="margin-top:6px">Rate limit: 1 scan / 7 days · Next reset: Mon 23 Jun 2026 00:00 UTC</div>
+    </div>
+
+    <!-- Agent Live Activity Log -->
+    <div class="card">
+      <div class="card-title">
+        ✦ Agent Activity Log
+        <span class="card-subtitle">US-132, US-133</span>
+        <span style="margin-left:auto;font-size:10px;color:#4CC844;display:flex;align-items:center">
+          <span class="agent-pulse"></span> Completed — 6m 43s
+        </span>
+      </div>
+      <div class="agent-log">
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:00.0</span>
+          <span class="agent-log-type think">THINK</span>
+          <span class="agent-log-msg">Analysing target acmecorp.com/app. I'll start by mapping the authentication surface before probing for vulnerabilities.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:08.3</span>
+          <span class="agent-log-type tool">TOOL</span>
+          <span class="agent-log-msg">http_probe(url="https://app.acmecorp.com/login") → 200 OK, form detected, CSRF token present</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:15.1</span>
+          <span class="agent-log-type think">THINK</span>
+          <span class="agent-log-msg">Login form found. Checking for rate limiting on failed attempts and username enumeration via response timing.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:28.7</span>
+          <span class="agent-log-type tool">TOOL</span>
+          <span class="agent-log-msg">brute_probe(endpoint="/login", attempts=10, timing_analysis=true) → No lockout after 10 attempts, timing delta: 480ms (user exists) vs 12ms (user not found)</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:29.2</span>
+          <span class="agent-log-type find">FIND</span>
+          <span class="agent-log-msg">CRITICAL: Username enumeration via timing — response time 40× slower for existing users. Attacker can enumerate all accounts. CVE pattern: OWASP A07:2021</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">00:44.0</span>
+          <span class="agent-log-type think">THINK</span>
+          <span class="agent-log-msg">No account lockout after 10 attempts. Let me verify if there's rate limiting at the IP level before flagging a brute-force finding.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">01:02.5</span>
+          <span class="agent-log-type tool">TOOL</span>
+          <span class="agent-log-msg">rate_limit_probe(endpoint="/login", requests=50, window="60s") → No rate limiting detected at IP or session level</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">01:03.1</span>
+          <span class="agent-log-type find">FIND</span>
+          <span class="agent-log-msg">CRITICAL: No rate limiting on authentication endpoint. Brute-force attacks unrestricted. 50 requests in 60 seconds without block.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">01:18.0</span>
+          <span class="agent-log-type think">THINK</span>
+          <span class="agent-log-msg">Moving to session management. I'll check JWT handling, session fixation, and logout behaviour.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">02:10.4</span>
+          <span class="agent-log-type tool">TOOL</span>
+          <span class="agent-log-msg">jwt_analyse(token="eyJhbG...") → alg: HS256, exp: +30d, no jti (no revocation possible)</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">02:11.0</span>
+          <span class="agent-log-type find">FIND</span>
+          <span class="agent-log-msg">HIGH: JWT tokens non-revocable (no jti claim). Compromised tokens valid for 30 days with no server-side invalidation.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">03:45.0</span>
+          <span class="agent-log-type tool">TOOL</span>
+          <span class="agent-log-msg">idor_probe(endpoints=["/api/user/{id}", "/api/orders/{id}"], method="sequential_id_test") → /api/orders/{id} returns other users' orders</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">03:45.8</span>
+          <span class="agent-log-type find">FIND</span>
+          <span class="agent-log-msg">CRITICAL: IDOR on /api/orders/{id} — authenticated user can access any order by incrementing ID. Data exposure risk: order history, PII, payment last-4.</span>
+        </div>
+        <div class="agent-log-item">
+          <span class="agent-log-time">06:43.0</span>
+          <span class="agent-log-type done">DONE</span>
+          <span class="agent-log-msg">Assessment complete. 18 steps executed. 9 findings generated (2 critical, 3 high, 3 medium, 1 low). Full report ready.</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm">⬇ Export Agent Transcript</button>
+        <button class="btn btn-outline btn-sm">📋 Copy Raw Log</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Findings -->
+  <div>
+    <div class="card">
+      <div class="card-title">🔴 AI Agent Findings <span class="card-subtitle">US-134, US-135</span></div>
+
+      <div class="tabs">
+        <div class="tab active">All (9)</div>
+        <div class="tab">Critical (2)</div>
+        <div class="tab">High (3)</div>
+        <div class="tab">Medium (3)</div>
+        <div class="tab">Low (1)</div>
+      </div>
+
+      <div class="finding-row" style="border-left:3px solid #DC2626">
+        <div class="finding-left">
+          <span class="sev critical">CRITICAL</span>
+          <div style="margin-top:6px"><span class="confidence-chip">99% conf</span></div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">IDOR — Unauthorised Order Data Exposure</div>
+          <div class="finding-desc">Endpoint /api/orders/{id} returns full order details for any ID without ownership check. Any authenticated user can access other users' orders, PII, and payment last-4 digits.</div>
+          <div class="finding-meta">OWASP A01:2021 · CWE-639 · Detected at step 14 · Financial exposure: <strong style="color:#DC2626">$180,000+</strong> (GDPR breach fine estimate)</div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <button class="btn btn-primary btn-xs">View Remediation</button>
+            <button class="btn btn-outline btn-xs">Add to Ticket</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-row" style="border-left:3px solid #DC2626">
+        <div class="finding-left">
+          <span class="sev critical">CRITICAL</span>
+          <div style="margin-top:6px"><span class="confidence-chip">98% conf</span></div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">No Rate Limiting on Authentication</div>
+          <div class="finding-desc">Login endpoint /api/auth/login accepts unlimited requests. No lockout, captcha, or IP throttle. Full credential brute-force possible.</div>
+          <div class="finding-meta">OWASP A07:2021 · CWE-307 · Detected at step 6 · Financial exposure: <strong style="color:#DC2626">$95,000</strong></div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <button class="btn btn-primary btn-xs">View Remediation</button>
+            <button class="btn btn-outline btn-xs">Add to Ticket</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-row" style="border-left:3px solid #F59E0B">
+        <div class="finding-left">
+          <span class="sev high">HIGH</span>
+          <div style="margin-top:6px"><span class="confidence-chip">96% conf</span></div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">Username Enumeration via Timing Attack</div>
+          <div class="finding-desc">Login response time differs by 40× for valid vs invalid usernames. Attackers can enumerate all registered accounts before brute-forcing.</div>
+          <div class="finding-meta">OWASP A07:2021 · CWE-208 · Detected at step 4 · Financial exposure: <strong style="color:#9A3412">$42,000</strong></div>
+          <div style="margin-top:8px"><button class="btn btn-primary btn-xs">View Remediation</button></div>
+        </div>
+      </div>
+
+      <div class="finding-row" style="border-left:3px solid #F59E0B">
+        <div class="finding-left">
+          <span class="sev high">HIGH</span>
+          <div style="margin-top:6px"><span class="confidence-chip">94% conf</span></div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">Non-Revocable JWT Tokens (30-day TTL)</div>
+          <div class="finding-desc">JWTs lack jti claim and no server-side revocation store exists. Stolen tokens remain valid for 30 days. No logout invalidation possible.</div>
+          <div class="finding-meta">OWASP A07:2021 · CWE-613 · Detected at step 10 · Financial exposure: <strong style="color:#9A3412">$38,000</strong></div>
+          <div style="margin-top:8px"><button class="btn btn-primary btn-xs">View Remediation</button></div>
+        </div>
+      </div>
+
+      <div class="finding-row" style="border-left:3px solid #F59E0B">
+        <div class="finding-left">
+          <span class="sev high">HIGH</span>
+          <div style="margin-top:6px"><span class="confidence-chip">91% conf</span></div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-title">Missing Content-Security-Policy Header</div>
+          <div class="finding-desc">No CSP header returned on any page. XSS payloads can load external scripts, exfiltrate session tokens, or redirect users to phishing pages.</div>
+          <div class="finding-meta">OWASP A05:2021 · CWE-693 · Detected at step 3 · Financial exposure: <strong style="color:#9A3412">$28,000</strong></div>
+          <div style="margin-top:8px"><button class="btn btn-primary btn-xs">View Remediation</button></div>
+        </div>
+      </div>
+
+      <div style="margin-top:4px;color:#888;font-size:11px">+ 4 more findings (3 medium, 1 low) — <a href="#" style="color:#4CC844;font-weight:600">Show all</a></div>
+    </div>
+
+    <!-- AI-Generated Remediation -->
+    <div class="card">
+      <div class="card-title">✦ AI-Generated Remediation — IDOR Finding <span class="card-subtitle">US-136, US-137</span></div>
+      <div class="alert-strip success" style="margin-bottom:12px">
+        <span>✦</span> Claude Security has generated a targeted remediation script for this finding. Test in staging before deploying.
+      </div>
+      <div class="code-block">
+# Fix: Add ownership check to order retrieval
+# File: app/api/routes/orders.py
+
+@router.get("/orders/{order_id}")
+async def get_order(
+    order_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncIOMotorClient = Depends(get_db)
+):
+    order = await db.orders.find_one({"_id": order_id})
+
+    if not order:
+        raise HTTPException(404, "Order not found")
+
+    # ADD THIS: Enforce ownership
+    if str(order["user_id"]) != str(current_user.id):
+        raise HTTPException(403, "Access denied")
+
+    return order</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm">📋 Copy Fix</button>
+        <button class="btn btn-outline btn-sm">⬇ Download All Fixes</button>
+        <button class="btn btn-outline btn-sm">📄 Export PDF Report</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

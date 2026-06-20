@@ -1,0 +1,39 @@
+meta {
+  name: Signup
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/auth/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{test_email}}",
+    "phone": "{{test_phone}}"
+  }
+}
+
+docs {
+  FR-001 to FR-005. Rejects freemail domains (gmail.com etc).
+  Dev: OTP logged to Mailhog console.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("returns tenant_id", function() {
+    expect(res.body.tenant_id).to.be.a("string");
+    bru.setEnvVar("tenant_id", res.body.tenant_id);
+  });
+}
+
+script:post-response {
+  if (res.body && res.body.tenant_id) {
+    bru.setEnvVar("tenant_id", res.body.tenant_id);
+  }
+}

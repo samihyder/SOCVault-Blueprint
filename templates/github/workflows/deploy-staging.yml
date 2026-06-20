@@ -1,0 +1,36 @@
+name: Deploy — Staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform apply (staging)
+        working-directory: infra/terraform/environments/staging
+        run: terraform init && terraform apply -auto-approve
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Post-deploy QA
+        run: |
+          pip install -r tests/qa/requirements.txt
+          chmod +x tests/qa/run-staging-qa.sh
+          ./tests/qa/run-staging-qa.sh

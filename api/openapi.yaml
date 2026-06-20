@@ -1,0 +1,1563 @@
+openapi: 3.1.0
+info:
+  title: SOCVault API
+  version: 0.1.0-mvp
+  description: |
+    SOCVault MVP API contract — auth, L1 recon scan, dashboard, admin telemetry.
+
+    **Scope:** Phase 1 staging MVP + Phase 2 admin routes. Full catalogue in `06_API_SPECIFICATION.md` and threat intel feeds in `20_FREE_EXTERNAL_APIS.md`.
+
+    **Auth flow:** signup → verify-otp → use `access_token` as Bearer on protected routes.
+  contact:
+    name: SOCVault Engineering
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api-staging.socvault.io/api/v1
+    description: Staging (MVP — active)
+  - url: http://localhost:4010/api/v1
+    description: Prism mock server
+  - url: https://api.socvault.io/api/v1
+    description: Production (dormant until cutover)
+
+tags:
+  - name: Health
+  - name: Auth
+  - name: Scan
+  - name: Dashboard
+  - name: Admin
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Service health check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                version: 0.1.0-mvp
+                environment: development
+
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register with business email and phone
+      operationId: authSignup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              email: jane.doe@acmecorp.com
+              phone: "+447700900123"
+      responses:
+        '200':
+          description: OTP sent (or logged in dev via Mailhog)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: conflict
+                message: An account with this email already exists
+                code: EMAIL_ALREADY_REGISTERED
+
+  /auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: Verify OTP and issue JWT tokens
+      operationId: authVerifyOtp
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+            example:
+              email: jane.doe@acmecorp.com
+              otp: "482910"
+      responses:
+        '200':
+          description: Tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      operationId: authRefresh
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current tenant profile
+      operationId: authMe
+      responses:
+        '200':
+          description: Tenant profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /scan/execute:
+    post:
+      tags: [Scan]
+      summary: Trigger a scan (MVP — L1 RECON only)
+      operationId: scanExecute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanExecuteRequest'
+            example:
+              layer: RECON
+              target: acmecorp.com
+              consent: true
+      responses:
+        '202':
+          description: Scan queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanQueuedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          description: Freemium monthly limit exceeded (FR-026)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: rate_limit_exceeded
+                message: Freemium tier allows 1 L1 Recon scan per calendar month
+                code: FREEMIUM_SCAN_LIMIT
+                retry_after: "2026-07-01T00:00:00Z"
+
+  /scan/{scan_id}:
+    get:
+      tags: [Scan]
+      summary: Poll scan status and results
+      operationId: scanGetById
+      parameters:
+        - $ref: '#/components/parameters/ScanId'
+      responses:
+        '200':
+          description: Scan record (status may be QUEUED, RUNNING, COMPLETE, FAILED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRecord'
+              examples:
+                running:
+                  summary: Scan in progress
+                  value:
+                    scan_id: 7f3c2a1b-9e4d-4c8a-b2f1-6d5e4a3b2c1d
+                    tenant_id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    layer: RECON
+                    target: acmecorp.com
+                    status: RUNNING
+                    progress_percent: 47
+                    started_at: "2026-06-18T10:00:00Z"
+                    completed_at: null
+                    executive_report: null
+                    cogs: null
+                complete:
+                  summary: Scan complete with AI report
+                  value:
+                    scan_id: 7f3c2a1b-9e4d-4c8a-b2f1-6d5e4a3b2c1d
+                    tenant_id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    layer: RECON
+                    target: acmecorp.com
+                    status: COMPLETE
+                    progress_percent: 100
+                    started_at: "2026-06-18T10:00:00Z"
+                    completed_at: "2026-06-18T10:02:14Z"
+                    executive_report:
+                      health_score: 68
+                      financial_exposure_usd: 142500
+                      summary: "Your external attack surface shows moderate risk..."
+                      findings_count: 12
+                    cogs:
+                      compute_cost: 0.000002
+                      ai_token_cost: 0.18
+                      threat_intel_cost: 0.03
+                      total: 0.21
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /scan/history:
+    get:
+      tags: [Scan]
+      summary: Tenant scan history
+      operationId: scanHistory
+      parameters:
+        - name: layer
+          in: query
+          schema:
+            $ref: '#/components/schemas/ScanLayer'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated scan list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      summary: Health score, exposure, and top risks
+      operationId: dashboardSummary
+      responses:
+        '200':
+          description: Dashboard summary for current tenant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/telemetry:
+    get:
+      tags: [Admin]
+      summary: Platform COGS and margin telemetry (admin only)
+      operationId: adminTelemetry
+      responses:
+        '200':
+          description: Aggregated unit economics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTelemetry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/explorer/catalog:
+    get:
+      tags: [Admin]
+      summary: OpenAPI-derived endpoint catalogue for API Explorer
+      operationId: adminExplorerCatalog
+      description: Phase 2 internal. Returns grouped endpoints from synced OpenAPI spec.
+      responses:
+        '200':
+          description: Endpoint catalogue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerCatalog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/explorer/test:
+    post:
+      tags: [Admin]
+      summary: Execute proxied API test from Super Admin console
+      operationId: adminExplorerTest
+      description: |
+        Server-side proxy. Resolves `{{variables}}` from encrypted vault.
+        Returns try/catch-style success/failure envelope. May auto-save response fields to vault.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExplorerTestRequest'
+      responses:
+        '200':
+          description: Test completed (check success field for pass/fail)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerTestResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/vault/variables:
+    get:
+      tags: [Admin]
+      summary: List Pass & Keys variables (masked)
+      operationId: adminVaultListVariables
+      parameters:
+        - name: environment
+          in: query
+          schema:
+            type: string
+            enum: [mock, staging, production]
+            default: staging
+      responses:
+        '200':
+          description: Variable names and masked previews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultVariableList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Admin]
+      summary: Create or update a vault variable
+      operationId: adminVaultUpsertVariable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaultVariableUpsert'
+      responses:
+        '200':
+          description: Variable saved (value never echoed in response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultVariableMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/vault/variables/{key}:
+    delete:
+      tags: [Admin]
+      summary: Delete a vault variable
+      operationId: adminVaultDeleteVariable
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          schema:
+            type: string
+            enum: [mock, staging, production]
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/vault/unlock:
+    post:
+      tags: [Admin]
+      summary: Step-up auth to reveal vault secrets
+      operationId: adminVaultUnlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [credential]
+              properties:
+                credential:
+                  type: string
+                  description: Super Admin PIN or password
+      responses:
+        '200':
+          description: Unlock session granted (5 min TTL)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unlock_expires_at:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/vault/reveal/{key}:
+    post:
+      tags: [Admin]
+      summary: Reveal decrypted vault value (requires active unlock session)
+      operationId: adminVaultReveal
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Decrypted value (audit logged)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Unlock session expired or insufficient role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/tracker/summary:
+    get:
+      tags: [Admin]
+      summary: Development tracker dashboard summary
+      operationId: adminTrackerSummary
+      description: Phase progress, stack live matrix, next recommended action (FR-208, FR-212).
+      responses:
+        '200':
+          description: Tracker summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tracker/items:
+    get:
+      tags: [Admin]
+      summary: List tracker checklist items
+      operationId: adminTrackerListItems
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [INF, DEV, API, EXT]
+      responses:
+        '200':
+          description: Checklist items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerItemList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tracker/items/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update tracker item status
+      operationId: adminTrackerUpdateItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: INF-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackerItemUpdate'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tracker/actions:
+    get:
+      tags: [Admin]
+      summary: List action log entries
+      operationId: adminTrackerListActions
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Action log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerActionList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Admin]
+      summary: Log a new development action
+      operationId: adminTrackerCreateAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackerActionCreate'
+      responses:
+        '201':
+          description: Action logged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerAction'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tracker/export:
+    post:
+      tags: [Admin]
+      summary: Export tracker as DEVELOPMENT_TRACKER.md markdown
+      operationId: adminTrackerExport
+      responses:
+        '200':
+          description: Markdown export
+          content:
+            text/markdown:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tracker/probes/run:
+    post:
+      tags: [Admin]
+      summary: Run stack health probes (optional)
+      operationId: adminTrackerRunProbes
+      responses:
+        '200':
+          description: Probe results applied to stack matrix
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerProbeResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/ti/feeds:
+    get:
+      tags: [Admin]
+      summary: List threat intelligence feed registry
+      operationId: adminTiListFeeds
+      description: |
+        Returns all configured external enrichment feeds. Feed catalogue and layer mapping
+        are defined in `docs/20_FREE_EXTERNAL_APIS.md` (single source of truth).
+      parameters:
+        - name: layer
+          in: query
+          schema:
+            type: string
+            enum: [L1, L2, L3, L4, L5, L6, L7, L8, L9]
+        - name: environment
+          in: query
+          schema:
+            type: string
+            enum: [staging, production]
+            default: staging
+      responses:
+        '200':
+          description: Feed registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeedList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/ti/feeds/priority:
+    put:
+      tags: [Admin]
+      summary: Set global feed fallback priority order
+      operationId: adminTiSetFeedPriority
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TiFeedPriorityUpdate'
+      responses:
+        '200':
+          description: Priority order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeedList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/ti/feeds/{feed_id}:
+    get:
+      tags: [Admin]
+      summary: Get single threat intel feed configuration
+      operationId: adminTiGetFeed
+      parameters:
+        - $ref: '#/components/parameters/TiFeedId'
+        - name: environment
+          in: query
+          schema:
+            type: string
+            enum: [staging, production]
+            default: staging
+      responses:
+        '200':
+          description: Feed detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Admin]
+      summary: Enable/disable feed or update limits
+      operationId: adminTiUpdateFeed
+      parameters:
+        - $ref: '#/components/parameters/TiFeedId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TiFeedUpdate'
+      responses:
+        '200':
+          description: Feed updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/ti/feeds/{feed_id}/test:
+    post:
+      tags: [Admin]
+      summary: Test feed connectivity and API key validity
+      operationId: adminTiTestFeed
+      parameters:
+        - $ref: '#/components/parameters/TiFeedId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                environment:
+                  type: string
+                  enum: [staging, production]
+                  default: staging
+                sample_ioc:
+                  type: string
+                  description: Optional test IOC (IP, hash, domain) for live lookup
+      responses:
+        '200':
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeedTestResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/ti/feeds/{feed_id}/usage:
+    get:
+      tags: [Admin]
+      summary: Feed API usage and quota for last 24 hours
+      operationId: adminTiFeedUsage
+      parameters:
+        - $ref: '#/components/parameters/TiFeedId'
+        - name: environment
+          in: query
+          schema:
+            type: string
+            enum: [staging, production]
+            default: staging
+      responses:
+        '200':
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TiFeedUsage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito-issued JWT access token from POST /auth/verify-otp (TTL configured in Cognito User Pool; validated by API Gateway authorizer per ADR-003)
+
+  parameters:
+    ScanId:
+      name: scan_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TiFeedId:
+      name: feed_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: EXT-007
+        description: Feed registry ID from docs/20_FREE_EXTERNAL_APIS.md §5
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: unauthorized
+            message: Valid Bearer token required
+            code: INVALID_TOKEN
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    PaymentRequired:
+      description: Paid tier required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: payment_required
+            message: Upgrade required to access this feature
+            code: TIER_GATE
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        version:
+          type: string
+        environment:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        retry_after:
+          type: string
+          format: date-time
+
+    PaymentTier:
+      type: string
+      enum: [FREEMIUM, STARTER, PRO, ENTERPRISE]
+
+    ScanLayer:
+      type: string
+      enum: [RECON, APPSEC, MOBILE, API, COMPLIANCE, CLOUD, SOC, MALWARE, L9_AGENT]
+      description: MVP implements RECON only
+
+    ScanStatus:
+      type: string
+      enum: [QUEUED, RUNNING, COMPLETE, FAILED, CANCELLED]
+
+    SignupRequest:
+      type: object
+      required: [email, phone]
+      properties:
+        email:
+          type: string
+          format: email
+          description: Business email only — freemail domains rejected (FR-002)
+        phone:
+          type: string
+          description: E.164 format recommended
+          example: "+447700900123"
+
+    SignupResponse:
+      type: object
+      required: [message, tenant_id, otp_sent]
+      properties:
+        message:
+          type: string
+        tenant_id:
+          type: string
+          format: uuid
+        workspace_domain:
+          type: string
+          example: acmecorp.com
+        otp_sent:
+          type: boolean
+        expires_in_seconds:
+          type: integer
+          example: 600
+
+    VerifyOtpRequest:
+      type: object
+      required: [email, otp]
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          pattern: "^[0-9]{6}$"
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+
+    TokenResponse:
+      type: object
+      required: [access_token, refresh_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          enum: [bearer]
+        expires_in:
+          type: integer
+          description: Access token TTL in seconds
+          example: 900
+        tenant_id:
+          type: string
+          format: uuid
+
+    TenantProfile:
+      type: object
+      required: [tenant_id, business_email, workspace_domain, payment_tier]
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+        business_email:
+          type: string
+          format: email
+        phone_number:
+          type: string
+        workspace_domain:
+          type: string
+        payment_tier:
+          $ref: '#/components/schemas/PaymentTier'
+        domain_verified:
+          type: boolean
+        mfa_enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_l1_scan_at:
+          type: ["string", "null"]
+          format: date-time
+
+    ScanExecuteRequest:
+      type: object
+      required: [layer, target, consent]
+      properties:
+        layer:
+          $ref: '#/components/schemas/ScanLayer'
+        target:
+          type: string
+          description: Domain or IP — must match workspace_domain for MVP
+          example: acmecorp.com
+        consent:
+          type: boolean
+          description: Scan authorisation checkbox (FR-028)
+
+    ScanQueuedResponse:
+      type: object
+      required: [scan_id, status]
+      properties:
+        scan_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [QUEUED]
+
+    CogsBreakdown:
+      type: object
+      properties:
+        compute_cost:
+          type: number
+          format: float
+        ai_token_cost:
+          type: number
+          format: float
+        threat_intel_cost:
+          type: number
+          format: float
+        total:
+          type: number
+          format: float
+
+    Finding:
+      type: object
+      properties:
+        id:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low, info]
+        title:
+          type: string
+        summary:
+          type: string
+        financial_exposure_usd:
+          type: number
+        remediation_script:
+          type: ["string", "null"]
+          description: Null for Freemium tier (FR-048)
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    ExecutiveReport:
+      type: object
+      properties:
+        health_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        financial_exposure_usd:
+          type: number
+        summary:
+          type: string
+        findings_count:
+          type: integer
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+
+    ScanRecord:
+      type: object
+      required: [scan_id, tenant_id, layer, target, status]
+      properties:
+        scan_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        layer:
+          $ref: '#/components/schemas/ScanLayer'
+        target:
+          type: string
+        status:
+          $ref: '#/components/schemas/ScanStatus'
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        raw_findings:
+          type: object
+          additionalProperties: true
+        executive_report:
+          $ref: '#/components/schemas/ExecutiveReport'
+        cogs:
+          $ref: '#/components/schemas/CogsBreakdown'
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: ["string", "null"]
+          format: date-time
+        error_message:
+          type: ["string", "null"]
+
+    ScanHistoryResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanRecord'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    DashboardSummary:
+      type: object
+      required: [health_score, financial_exposure_usd, payment_tier]
+      properties:
+        health_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        health_grade:
+          type: string
+          example: C+
+        financial_exposure_usd:
+          type: number
+        financial_exposure_gbp:
+          type: number
+        payment_tier:
+          $ref: '#/components/schemas/PaymentTier'
+        last_scan_at:
+          type: ["string", "null"]
+          format: date-time
+        top_risks:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              title:
+                type: string
+              severity:
+                type: string
+              financial_exposure_usd:
+                type: number
+        layer_status:
+          type: array
+          items:
+            type: object
+            properties:
+              layer:
+                $ref: '#/components/schemas/ScanLayer'
+              last_scan_at:
+                type: ["string", "null"]
+                format: date-time
+              status:
+                type: string
+                enum: [never_run, complete, stale, running]
+
+    AdminTelemetry:
+      type: object
+      properties:
+        total_scans:
+          type: integer
+        total_cogs_usd:
+          type: number
+        total_revenue_usd:
+          type: number
+        gross_margin_percent:
+          type: number
+        avg_cogs_per_scan_usd:
+          type: number
+        scans_last_24h:
+          type: integer
+        ai_token_cost_last_24h_usd:
+          type: number
+        tenant_count:
+          type: integer
+
+    ExplorerCatalog:
+      type: object
+      properties:
+        openapi_version:
+          type: string
+        synced_at:
+          type: string
+          format: date-time
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              tag:
+                type: string
+              endpoints:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    method:
+                      type: string
+                    path:
+                      type: string
+                    operation_id:
+                      type: string
+                    summary:
+                      type: string
+
+    ExplorerTestRequest:
+      type: object
+      required: [method, path, environment]
+      properties:
+        method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE]
+        path:
+          type: string
+          example: /auth/verify-otp
+        environment:
+          type: string
+          enum: [mock, staging, production]
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        query:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: object
+        auto_save:
+          type: boolean
+          default: true
+
+    ExplorerTestResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status_code:
+          type: integer
+        latency_ms:
+          type: integer
+        response_headers:
+          type: object
+          additionalProperties:
+            type: string
+        response_body:
+          type: object
+        auto_saved_keys:
+          type: array
+          items:
+            type: string
+        error_type:
+          type: string
+          enum: [HTTP_ERROR, TIMEOUT, VALIDATION, NETWORK]
+          nullable: true
+        message:
+          type: string
+          nullable: true
+
+    VaultVariableList:
+      type: object
+      properties:
+        environment:
+          type: string
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/VaultVariableMeta'
+
+    VaultVariableMeta:
+      type: object
+      properties:
+        key:
+          type: string
+        masked_preview:
+          type: string
+          example: '••••••••'
+        is_secret:
+          type: boolean
+        auto_saved:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+
+    VaultVariableUpsert:
+      type: object
+      required: [key, value, environment]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        environment:
+          type: string
+          enum: [mock, staging, production]
+        is_secret:
+          type: boolean
+          default: true
+
+    TrackerSummary:
+      type: object
+      properties:
+        current_phase:
+          type: string
+        phase_percent:
+          type: number
+        last_updated:
+          type: string
+          format: date-time
+        next_action_id:
+          type: string
+        stack_matrix:
+          type: array
+          items:
+            type: object
+            properties:
+              layer:
+                type: string
+              blueprint:
+                type: string
+                enum: [live, in_progress, not_started, blocked, spec_only]
+              staging:
+                type: string
+              production:
+                type: string
+
+    TrackerItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: INF-001
+        type:
+          type: string
+          enum: [INF, DEV, API, EXT]
+        title:
+          type: string
+        roadmap_ref:
+          type: string
+        status:
+          type: string
+          enum: [not_started, in_progress, live, blocked, spec_only]
+        verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+
+    TrackerItemList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackerItem'
+
+    TrackerItemUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [not_started, in_progress, live, blocked, spec_only]
+        notes:
+          type: string
+        verified_at:
+          type: string
+          format: date-time
+
+    TrackerAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: ACT-025
+        date:
+          type: string
+          format: date
+        category:
+          type: string
+        ref:
+          type: string
+        summary:
+          type: string
+        result:
+          type: string
+          enum: [verified, partial, blocked]
+        by:
+          type: string
+
+    TrackerActionCreate:
+      type: object
+      required: [category, ref, summary, result]
+      properties:
+        category:
+          type: string
+        ref:
+          type: string
+        summary:
+          type: string
+        result:
+          type: string
+          enum: [verified, partial, blocked]
+
+    TrackerActionList:
+      type: object
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackerAction'
+
+    TrackerProbeResult:
+      type: object
+      properties:
+        probes_run:
+          type: integer
+        updated_cells:
+          type: array
+          items:
+            type: string
+
+    TiFeed:
+      type: object
+      required: [id, provider, category, layers, key_required, enabled]
+      properties:
+        id:
+          type: string
+          example: EXT-007
+        provider:
+          type: string
+          example: AbuseIPDB
+        category:
+          type: string
+          enum: [ip_reputation, cve, ioc, breach, url, hash, blocklist, framework]
+        layers:
+          type: array
+          items:
+            type: string
+        key_required:
+          type: boolean
+        vault_key:
+          type: string
+          nullable: true
+          example: ti_abuseipdb_staging
+        enabled:
+          type: boolean
+        free_tier_limit:
+          type: string
+          example: 1000/day
+        priority:
+          type: integer
+        status:
+          type: string
+          enum: [ok, degraded, disabled, no_key, quota_exceeded]
+        last_test_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    TiFeedList:
+      type: object
+      properties:
+        feeds:
+          type: array
+          items:
+            $ref: '#/components/schemas/TiFeed'
+        priority_order:
+          type: array
+          items:
+            type: string
+
+    TiFeedUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        daily_limit:
+          type: integer
+        priority:
+          type: integer
+        vault_key:
+          type: string
+          description: Link to Pass & Keys variable name
+
+    TiFeedPriorityUpdate:
+      type: object
+      required: [feed_ids]
+      properties:
+        feed_ids:
+          type: array
+          items:
+            type: string
+          description: Ordered list of feed IDs (fallback sequence)
+
+    TiFeedTestResult:
+      type: object
+      required: [success, latency_ms]
+      properties:
+        success:
+          type: boolean
+        latency_ms:
+          type: integer
+        message:
+          type: string
+        sample_response:
+          type: object
+          additionalProperties: true
+
+    TiFeedUsage:
+      type: object
+      properties:
+        feed_id:
+          type: string
+        period_hours:
+          type: integer
+          example: 24
+        calls_made:
+          type: integer
+        quota_limit:
+          type: integer
+          nullable: true
+        quota_percent:
+          type: number
+          format: float
+        cache_hits:
+          type: integer
+        estimated_cost_usd:
+          type: number
+          format: float
+
+security:
+  - bearerAuth: []

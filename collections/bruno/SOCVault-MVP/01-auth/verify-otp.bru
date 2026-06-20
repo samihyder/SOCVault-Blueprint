@@ -1,0 +1,40 @@
+meta {
+  name: Verify OTP
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/auth/verify-otp
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{test_email}}",
+    "otp": "482910"
+  }
+}
+
+docs {
+  FR-006. Replace otp with code from Mailhog/SMS in dev.
+  Saves access_token and refresh_token to environment.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("returns access_token", function() {
+    expect(res.body.access_token).to.be.a("string");
+  });
+}
+
+script:post-response {
+  if (res.body) {
+    if (res.body.access_token) bru.setEnvVar("access_token", res.body.access_token);
+    if (res.body.refresh_token) bru.setEnvVar("refresh_token", res.body.refresh_token);
+    if (res.body.tenant_id) bru.setEnvVar("tenant_id", res.body.tenant_id);
+  }
+}

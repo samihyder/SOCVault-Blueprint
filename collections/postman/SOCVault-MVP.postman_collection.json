@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "SOCVault MVP",
+    "description": "Phase 1 MVP — auth, L1 scan, dashboard, admin telemetry",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://api-staging.socvault.io/api/v1" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "tenant_id", "value": "" },
+    { "key": "scan_id", "value": "" },
+    { "key": "test_email", "value": "jane.doe@acmecorp.com" },
+    { "key": "test_phone", "value": "+447700900123" },
+    { "key": "test_domain", "value": "acmecorp.com" }
+  ],
+  "item": [
+    {
+      "name": "00 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('tenant_id', pm.response.json().tenant_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"phone\": \"{{test_phone}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/signup"
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('access_token', j.access_token);",
+                  "  pm.collectionVariables.set('refresh_token', j.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"otp\": \"482910\"\n}"
+            },
+            "url": "{{base_url}}/auth/verify-otp"
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Scan",
+      "item": [
+        {
+          "name": "Execute L1 Recon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "  pm.collectionVariables.set('scan_id', pm.response.json().scan_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"layer\": \"RECON\",\n  \"target\": \"{{test_domain}}\",\n  \"consent\": true\n}"
+            },
+            "url": "{{base_url}}/scan/execute"
+          }
+        },
+        {
+          "name": "Get Scan",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/scan/{{scan_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Dashboard",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/dashboard/summary"
+          }
+        }
+      ]
+    }
+  ]
+}

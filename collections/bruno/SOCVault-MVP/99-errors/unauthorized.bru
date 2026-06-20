@@ -1,0 +1,21 @@
+meta {
+  name: Unauthorized (no token)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/auth/me
+  body: none
+  auth: none
+}
+
+docs {
+  NFR-020. Expect 401 without Bearer token.
+}
+
+tests {
+  test("status is 401", function() {
+    expect(res.status).to.equal(401);
+  });
+}

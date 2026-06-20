@@ -1,0 +1,25 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/health
+  body: none
+  auth: none
+}
+
+docs {
+  Smoke test — no auth required.
+  Expect 200 with status ok.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  test("body has status ok", function() {
+    expect(res.body.status).to.equal("ok");
+  });
+}

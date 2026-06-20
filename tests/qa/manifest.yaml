@@ -1,0 +1,74 @@
+# SOCVault QA manifest — maps user stories to automated tests
+# Used by run-staging-qa.sh and GitHub Actions qa-staging workflow
+
+version: "1.0"
+target: staging
+api_base: "${STAGING_API_URL:-https://api-staging.socvault.io/api/v1}"
+
+suites:
+  platform:
+    - id: T-PLAT-001
+      name: Health check
+      script: run-staging-qa.sh (health curl)
+      openapi: GET /health
+    - id: T-PLAT-002
+      name: CI deploy verification
+      manual: true
+      note: Verified by deploy-staging.yml success
+
+  auth:
+    - id: T-001
+      stories: [US-001, US-002]
+      name: Reject freemail signup
+      pytest: tests/qa/api/test_auth_flow.py::test_reject_freemail_signup
+      openapi: POST /auth/signup
+    - id: T-002
+      stories: [US-003, US-004, US-005]
+      name: Signup and OTP flow
+      pytest: tests/qa/api/test_auth_flow.py::test_signup_accepts_business_email
+      openapi: POST /auth/signup, POST /auth/verify-otp
+      manual_steps: OTP from SNS/SES on staging
+    - id: T-007
+      stories: [US-006, US-007]
+      name: Unauthorized without JWT
+      pytest: tests/qa/api/test_auth_flow.py::test_me_requires_auth
+      openapi: GET /auth/me
+
+  scan:
+    - id: T-003
+      stories: [US-010]
+      name: Freemium rate limit
+      pytest: tests/qa/api/test_scan_flow.py::test_freemium_rate_limit
+      openapi: POST /scan/execute
+      skip: true  # enable when scan API live
+    - id: T-004
+      stories: [US-008, US-009]
+      name: L1 scan completes
+      pytest: tests/qa/api/test_scan_flow.py::test_l1_scan_execute
+      openapi: POST /scan/execute, GET /scan/{id}
+      skip: true
+    - id: T-008
+      stories: [US-011]
+      name: Tenant isolation
+      pytest: tests/qa/api/test_scan_flow.py::test_tenant_isolation
+      skip: true
+
+  admin:
+    - id: T-ADM-001
+      stories: [US-186]
+      name: API Explorer catalog
+      skip: true
+    - id: T-ADM-002
+      stories: [US-201]
+      name: Threat Intel feeds list
+      skip: true
+
+bruno:
+  collection: collections/bruno/SOCVault-MVP
+  environment: staging
+  order:
+    - 00-health/health
+    - 01-auth/signup
+    - 01-auth/verify-otp
+    - 01-auth/me
+    - 02-scan/execute-recon
