@@ -7,7 +7,7 @@ Run: python3 scripts/github-projects/create-admin-issues.py --repo samihyder/SOC
 import argparse
 import json
 import requests
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class GitHubIssueCreator:
     def __init__(self, repo: str, token: str):
@@ -18,7 +18,31 @@ class GitHubIssueCreator:
             "Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json"
         }
-    
+        self._existing_issue_titles = None
+
+    def _get_existing_issue_titles(self) -> set:
+        """Fetch titles of all existing issues (open + closed), cached for the run."""
+        if self._existing_issue_titles is not None:
+            return self._existing_issue_titles
+
+        titles = set()
+        page = 1
+        while True:
+            response = requests.get(
+                f"{self.base_url}/repos/{self.repo}/issues",
+                headers=self.headers,
+                params={"state": "all", "per_page": 100, "page": page},
+            )
+            response.raise_for_status()
+            batch = response.json()
+            if not batch:
+                break
+            titles.update(issue["title"] for issue in batch if "pull_request" not in issue)
+            page += 1
+
+        self._existing_issue_titles = titles
+        return titles
+
     def create_milestone(self, title: str, description: str) -> Dict:
         """Create a GitHub milestone"""
         url = f"{self.base_url}/repos/{self.repo}/milestones"
@@ -31,10 +55,13 @@ class GitHubIssueCreator:
         response.raise_for_status()
         return response.json()
     
-    def create_issue(self, title: str, body: str, milestone: str = None, labels: List[str] = None) -> Dict:
-        """Create a GitHub issue"""
+    def create_issue(self, title: str, body: str, milestone: str = None, labels: List[str] = None) -> Optional[Dict]:
+        """Create a GitHub issue, skipping if one with the same title already exists"""
+        if title in self._get_existing_issue_titles():
+            return None
+
         url = f"{self.base_url}/repos/{self.repo}/issues"
-        
+
         # Get milestone number if needed
         milestone_num = None
         if milestone:
@@ -50,8 +77,9 @@ class GitHubIssueCreator:
         
         response = requests.post(url, headers=self.headers, json=payload)
         response.raise_for_status()
+        self._existing_issue_titles.add(title)
         return response.json()
-    
+
     def _get_milestone_number(self, milestone_title: str) -> int:
         """Get milestone number by title"""
         url = f"{self.base_url}/repos/{self.repo}/milestones"
@@ -310,13 +338,16 @@ class GitHubIssueCreator:
         print(f"\n📝 Creating {len(phase0_stories)} Phase 0 user stories...")
         for story in phase0_stories:
             try:
-                self.create_issue(
+                result = self.create_issue(
                     title=story["title"],
                     body=story["body"],
                     milestone=story["milestone"],
                     labels=story["labels"]
                 )
-                print(f"  ✅ {story['title']}")
+                if result is None:
+                    print(f"  ⏭️  {story['title']} (already exists, skipped)")
+                else:
+                    print(f"  ✅ {story['title']}")
             except Exception as e:
                 print(f"  ❌ {story['title']} - {str(e)}")
         
@@ -455,13 +486,16 @@ class GitHubIssueCreator:
         print(f"\n📝 Creating {len(phase1a_stories)} Phase 1A user stories...")
         for story in phase1a_stories:
             try:
-                self.create_issue(
+                result = self.create_issue(
                     title=story["title"],
                     body=story["body"],
                     milestone=story["milestone"],
                     labels=story["labels"]
                 )
-                print(f"  ✅ {story['title']}")
+                if result is None:
+                    print(f"  ⏭️  {story['title']} (already exists, skipped)")
+                else:
+                    print(f"  ✅ {story['title']}")
             except Exception as e:
                 print(f"  ❌ {story['title']} - {str(e)}")
         

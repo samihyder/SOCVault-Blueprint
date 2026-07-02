@@ -18,13 +18,8 @@ Requirements:
 """
 
 import argparse
-import json
 import sys
-from typing import Optional
 import requests
-
-# GitHub API GraphQL endpoint
-GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
 # Roadmap milestones with phases and descriptions
 MILESTONES = [
@@ -139,61 +134,9 @@ class GitHubProjectManager:
             "X-Github-Api-Version": "2022-11-28",
         }
 
-    def query_graphql(self, query: str) -> dict:
-        """Execute a GraphQL query against GitHub API."""
-        try:
-            response = requests.post(
-                GITHUB_GRAPHQL_URL,
-                json={"query": query},
-                headers=self.headers,
-                timeout=30,
-            )
-            response.raise_for_status()
-            data = response.json()
-            
-            if "errors" in data:
-                print(f"❌ GraphQL Error: {data['errors']}")
-                return {}
-            
-            return data.get("data", {})
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Request failed: {e}")
-            return {}
-
-    def get_repository_id(self) -> Optional[str]:
-        """Get repository ID from owner/repo string."""
-        owner, repo = self.repo.split("/")
-        query = f"""
-        query {{
-            repository(owner: "{owner}", name: "{repo}") {{
-                id
-            }}
-        }}
-        """
-        result = self.query_graphql(query)
-        return result.get("repository", {}).get("id")
-
     def create_milestone(self, title: str, description: str) -> bool:
         """Create a milestone in the repository."""
         owner, repo = self.repo.split("/")
-        query = f"""
-        mutation {{
-            createMilestone(input: {{
-                repositoryId: "{self.repo_id}"
-                title: "{title.replace('"', '\\"')}"
-                description: "{description.replace('"', '\\"').replace(chr(10), '\\n')}"
-            }}) {{
-                milestone {{
-                    id
-                    title
-                    description
-                }}
-                clientMutationId
-            }}
-        }}
-        """
-        
-        # Use REST API instead for better compatibility
         url = f"https://api.github.com/repos/{owner}/{repo}/milestones"
         data = {
             "title": title,
