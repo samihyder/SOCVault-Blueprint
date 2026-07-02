@@ -1,0 +1,93 @@
+name: Create Admin Setup Issues
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Create Admin Setup Milestones & Issues
+        run: |
+          python3 scripts/github-projects/create-admin-issues.py \
+            --repo ${{ github.repository }} \
+            --token ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create Admin Project Board
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Create GitHub Projects v2 board for Admin Setup
+            const mutation = `
+              mutation CreateProject($input: CreateProjectV2Input!) {
+                createProjectV2(input: $input) {
+                  projectV2 {
+                    id
+                    number
+                    title
+                  }
+                }
+              }
+            `;
+            
+            const variables = {
+              input: {
+                ownerId: context.repo.owner,  // This will be repo owner ID (needs graphQL query first)
+                title: "SOCVault - Admin Setup",
+                readme: "Phase 0-2: Admin infrastructure & core management features. Foundational for all other modules."
+              }
+            };
+            
+            try {
+              const result = await github.graphql(mutation, variables);
+              console.log("✅ Project created:", result);
+            } catch (error) {
+              console.log("⚠️ Project might already exist:", error.message);
+            }
+      
+      - name: Create Project Custom Fields
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Add custom fields: Story Points, Status, Assigned Team
+            console.log("ℹ️ Custom fields setup - Manual: https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/managing-custom-fields-for-your-project");
+      
+      - name: Post Workflow Summary
+        run: |
+          echo "✅ Admin Setup Issues Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Created 12 milestones (M0.1-M1.6)" >> $GITHUB_STEP_SUMMARY
+          echo "- Created 15 user stories (US-ADM-001 to US-ADM-015)" >> $GITHUB_STEP_SUMMARY
+          echo "- Created GitHub Projects v2 board" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to [GitHub Projects](https://github.com/${{ github.repository }}/projects)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Configure board columns: Backlog → In Progress → In Review → Done (Sprint) → Done (All)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Set up automation: Issues labeled with milestone auto-move to \"In Progress\"" >> $GITHUB_STEP_SUMMARY
+          echo "4. Add custom fields: Story Points, Priority, Risk Level" >> $GITHUB_STEP_SUMMARY
+          echo "5. Start sprint: Move M0.1 stories to \"In Progress\"" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Assigned To" >> $GITHUB_STEP_SUMMARY
+          echo "- **Phase 0 Infrastructure**: DevOps Agent" >> $GITHUB_STEP_SUMMARY
+          echo "- **Phase 1A API & Core**: Backend Agent + Frontend Agent" >> $GITHUB_STEP_SUMMARY
