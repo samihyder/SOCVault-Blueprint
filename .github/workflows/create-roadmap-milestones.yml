@@ -1,0 +1,100 @@
+name: Create Roadmap Milestones
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  create-milestones:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Create roadmap milestones
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/github-projects/create-roadmap-milestones.py \
+            --repo ${{ github.repository }} \
+            --token ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create GitHub Projects board
+        run: |
+          echo "📊 GitHub Projects Setup"
+          echo "========================"
+          echo ""
+          echo "✅ Roadmap Milestones Created!"
+          echo ""
+          echo "📋 Next Steps (Manual):"
+          echo "1. Go to: https://github.com/${{ github.repository }}/projects"
+          echo "2. Click 'New project'"
+          echo "3. Choose 'Table' view"
+          echo "4. Name: 'SOCVault - Product Roadmap'"
+          echo ""
+          echo "📌 Add these columns:"
+          echo "  • Backlog (status: not started)"
+          echo "  • In Progress (status: in progress)"
+          echo "  • In Review (status: in review)"
+          echo "  • Done (status: completed)"
+          echo "  • Archive (status: archived)"
+          echo ""
+          echo "🏷️  Add these custom fields:"
+          echo "  • Story Points (number: 1-21)"
+          echo "  • Phase (text: 0, 1A, 1B, 2A, 2B, 3, 4, 5, 6, 7, 8)"
+          echo "  • Priority (text: CRITICAL, HIGH, MEDIUM, LOW)"
+          echo "  • Risk Level (text: Low, Medium, High)"
+          echo "  • Duration (number: weeks)"
+          echo ""
+          echo "🤖 Enable automation rules:"
+          echo "  • When issue created → Add to Backlog"
+          echo "  • When issue assigned → Move to In Progress"
+          echo "  • When PR opened → Move to In Review"
+          echo "  • When PR merged → Move to Done"
+      
+      - name: Create workflow summary
+        run: |
+          echo "## ✅ SOCVault Roadmap Milestones Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Milestones Created:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 0 – Infrastructure:** M0.0" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 1 – Admin & Auth:** M1.0, M1.5" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 2 – Scanning & AI:** M2.0, M2.5" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 3 – Full Layers:** M3.0" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 4 – SOAR:** M4.0" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 5 – Monetization:** M5.0" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 6 – Beta:** M6.0" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 7 – Launch:** M7.0 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "**Phase 8 – Enterprise:** M8.0" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Total:" >> $GITHUB_STEP_SUMMARY
+          echo "**11 Milestones** | **46 Weeks to Launch** | **52 Weeks to Enterprise**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Milestones created in GitHub" >> $GITHUB_STEP_SUMMARY
+          echo "2. 📌 [View all milestones](https://github.com/${{ github.repository }}/milestones)" >> $GITHUB_STEP_SUMMARY
+          echo "3. 📊 Set up GitHub Projects board (manual)" >> $GITHUB_STEP_SUMMARY
+          echo "4. 🚀 Start Phase 0 sprint" >> $GITHUB_STEP_SUMMARY
