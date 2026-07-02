@@ -4750,32 +4750,461 @@ Admin module is **COMPLETE & PRODUCTION-READY** when:
 
 ---
 
-## 19. Development Roadmap
+## 19. Comprehensive Product Roadmap
 
-### 19.1 Phased Delivery
+### 19.1 Complete Development Timeline (62 Weeks to Production Launch)
 
-| Phase | Duration | Goal | Status |
-|---|---|---|---|
-| **Phase 0** | Weeks 1–4 | AWS staging + IaC + CI/CD | 🔴 Not started |
-| **Phase 1** | Weeks 5–16 | Auth + L1 + Claude + dashboard (staging MVP) | 🔴 Not started |
-| **Phase 2** | Weeks 17–24 | Payments, SOAR, L2–L8, beta users | 🔴 Planned |
-| **Phase 3** | Weeks 25–36 | Public launch + GTM | 🔴 Planned |
-| **Phase 4** | Weeks 37–52 | Scale + enterprise tier + compliance | 🔴 Planned |
-| **Phase 5** | Year 2+ | International expansion + Series A | 🔴 Planned |
+**⚠️ CRITICAL: Admin Setup (Weeks 1–10) is the blocker for ALL other development**
 
-### 19.2 Key Milestones
+```
+Timeline Overview:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Milestone | Target | Status |
-|---|---|---|
-| **0.1** | AWS staging + CI/CD ready | 🔴 |
-| **1.1** | Authentication & onboarding live | 🔴 |
-| **1.2** | Scanning engine (L1) complete | 🔴 |
-| **1.3** | Claude AI integration complete | 🔴 |
-| **1.4** | Dashboard live | 🔴 |
-| **2.1** | Payments (Stripe) integrated | 🔴 |
-| **2.2** | SOAR playbooks live | 🔴 |
-| **2.9** | API Explorer + Pass & Keys | 🔴 |
-| **3.0** | Public launch (api.socvault.io) | 🔴 |
+PHASE 0: ADMIN INFRASTRUCTURE              [▓▓▓▓▓▓▓▓] (Weeks 1–3, 62 pts)
+└─ Foundation for ALL phases
+   ├─ AWS account, VPC, networking
+   ├─ MongoDB + DynamoDB setup
+   ├─ Secrets management
+   ├─ CI/CD pipelines
+   └─ Monitoring & alerting
+   
+   ✅ Deliverables: Staging AWS account ready, all GitHub Actions working
+   ⏸️ → BLOCKER: All Phase 1 work waits for Phase 0 completion
+
+PHASE 1A: ADMIN CORE + AUTH               [▓▓▓▓▓▓▓▓] (Weeks 4–10, 60 pts)
+└─ Admin portal + User authentication
+   ├─ Super admin user management
+   ├─ Tenant management
+   ├─ Admin dashboard
+   ├─ Audit log viewer
+   ├─ System settings
+   └─ Admin API documentation
+   
+   ✅ Deliverables: Admin portal live, user auth working
+   ⏸️ → BLOCKER: Tenant authentication required before user modules start
+
+PHASE 1B: TENANT AUTH & CORE FEATURES     [▓▓▓▓▓▓] (Weeks 11–14, 40 pts)
+└─ Parallel with Phase 1A (starts week 8)
+   ├─ Tenant signup/onboarding flow
+   ├─ JWT auth for tenant users
+   ├─ 2FA (SMS via SNS)
+   ├─ Tenant dashboard skeleton
+   └─ Settings management
+   
+   ✅ Deliverables: Tenant users can sign up and authenticate
+   ⏸️ → BLOCKER: Tenant auth required for L1 scanning to work
+
+PHASE 2A: SCANNING ENGINE L1               [▓▓▓▓▓▓▓] (Weeks 12–16, 50 pts)
+└─ Parallel with Phase 1B (starts week 10)
+   ├─ L1 network reconnaissance (15 checks)
+   ├─ L1 domain enumeration
+   ├─ L1 public asset discovery
+   ├─ SQS async scan orchestration
+   ├─ S3 result storage
+   └─ Scan status polling API
+   
+   ✅ Deliverables: Tenants can run L1 scans, results stored in S3
+
+PHASE 2B: AI INTELLIGENCE LAYER           [▓▓▓▓▓▓▓] (Weeks 17–22, 60 pts)
+└─ Parallel with Phase 2A
+   ├─ Claude Sonnet integration
+   ├─ Financial risk translation (each finding)
+   ├─ Markdown report generation
+   ├─ Scan insights & recommendations
+   ├─ Malware analysis (static)
+   └─ Prompt caching optimization
+   
+   ✅ Deliverables: Scans return AI-translated financial risk reports
+
+PHASE 3: SCANNING LAYERS 2–8               [▓▓▓▓▓▓▓▓▓] (Weeks 20–28, 90 pts)
+└─ Sequential, after L1 proven
+   ├─ L2: Web application scanning (OWASP Top 10)
+   ├─ L3: API security (OAuth, CORS, rate limiting)
+   ├─ L4: Cloud infrastructure (AWS security groups, IAM)
+   ├─ L5: Email security (DMARC, SPF, DKIM)
+   ├─ L6: Infrastructure scanning (certificate, DNS)
+   ├─ L7: Compliance scanning (PCI-DSS, HIPAA, SOC2)
+   ├─ L8: Malware & threat intel
+   └─ Dashboard showing all 8 layers
+   
+   ✅ Deliverables: Complete 8-layer scanning engine operational
+
+PHASE 4: SOAR & AUTOMATION                 [▓▓▓▓▓▓▓] (Weeks 26–32, 70 pts)
+└─ After L1–L8 scanning complete
+   ├─ SOAR playbook engine
+   ├─ Alert triage with Claude Opus
+   ├─ Automated remediation workflows
+   ├─ Third-party integrations (Slack, Teams, Jira)
+   ├─ Alert routing & escalation
+   └─ Playbook builder UI
+   
+   ✅ Deliverables: Automated incident response working
+
+PHASE 5: MONETIZATION & SCALE              [▓▓▓▓▓▓▓] (Weeks 30–38, 80 pts)
+└─ Parallel with Phase 4 (starts week 26)
+   ├─ Stripe payment integration
+   ├─ Subscription management
+   ├─ Usage metering & billing
+   ├─ Free tier limits enforcement
+   ├─ Pro/Enterprise tier feature gates
+   ├─ Invoice generation
+   └─ Analytics dashboard (admin view)
+   
+   ✅ Deliverables: Payment system operational, tier enforcement working
+
+PHASE 6: BETA LAUNCH                       [▓▓▓▓▓] (Weeks 39–42, 30 pts)
+└─ All core features complete
+   ├─ Load testing (k6)
+   ├─ Security audit
+   ├─ Performance optimization
+   ├─ UI/UX polish
+   ├─ Documentation complete
+   ├─ Onboarding flow refined
+   └─ Internal beta (20 customers)
+   
+   ✅ Deliverables: Production-ready staging environment
+
+PHASE 7: PUBLIC LAUNCH                     [▓▓▓▓] (Weeks 43–46, 25 pts)
+└─ Production deployment
+   ├─ Infrastructure cutover (staging → prod)
+   ├─ DNS migration
+   ├─ Monitoring activation
+   ├─ Incident response team on-call
+   ├─ Marketing launch
+   └─ Support team ready
+   
+   ✅ Deliverables: api.socvault.io live, customers paying
+
+PHASE 8: SCALE & ENTERPRISE                [▓▓▓▓▓] (Weeks 47–52, 40 pts)
+└─ Post-launch
+   ├─ Enterprise tier (SLA, 99.9% uptime, white-label)
+   ├─ Advanced audit trails
+   ├─ Compliance certifications (SOC2, ISO27001)
+   ├─ API rate limits & quotas
+   ├─ Advanced RBAC
+   └─ Dedicated account management
+   
+   ✅ Deliverables: Enterprise customers live
+
+PHASE 9: INTERNATIONAL & SERIES A          [▓▓▓▓▓] (Weeks 53+, TBD)
+└─ Year 2
+   ├─ EU data residency
+   ├─ GDPR compliance
+   ├─ Localization
+   ├─ Series A funding (target)
+   └─ Hiring (engineering, sales, support)
+```
+
+---
+
+### 19.2 Phase Breakdown with Dependencies
+
+**PHASE 0: Admin Infrastructure (Weeks 1–3) — 62 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| AWS Organization & IAM | DevOps | 1 week | — | 🔴 |
+| Terraform IaC | DevOps | 1 week | AWS setup | 🔴 |
+| MongoDB + DynamoDB | Backend | 1 week | Terraform | 🔴 |
+| Secrets Manager | DevOps | 3 days | AWS setup | 🔴 |
+| CloudWatch & Monitoring | DevOps | 3 days | AWS setup | 🔴 |
+| FastAPI skeleton | Backend | 3 days | Terraform | 🔴 |
+| CI/CD pipelines (all workflows) | DevOps | 3 days | GitHub setup | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Staging AWS account operational
+- ✅ All 6 GitHub Actions workflows passing
+- ✅ CloudWatch dashboards showing metrics
+- ✅ FastAPI `/health` endpoint responding
+- ✅ 0 CRITICAL vulnerabilities
+- ⏸️ **BLOCKER FOR:** All Phase 1+ work
+
+---
+
+**PHASE 1A: Admin Core (Weeks 4–10) — 60 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Admin user management | Backend | 2 weeks | Phase 0 | 🔴 |
+| Tenant management API | Backend | 2 weeks | Phase 0 | 🔴 |
+| Admin dashboard UI | Frontend | 2 weeks | Phase 0 | 🔴 |
+| Audit log system | Backend+Frontend | 1.5 weeks | Phase 0 | 🔴 |
+| System settings | Backend+Frontend | 1 week | Phase 0 | 🔴 |
+| API documentation | Backend | 3 days | APIs complete | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Admin portal at `https://admin-staging.socvault.io`
+- ✅ All 5 admin endpoints (users, tenants, audit, settings, health)
+- ✅ >80% code coverage
+- ✅ All CI/CD checks passing
+- ⏸️ **BLOCKER FOR:** Tenant auth (Phase 1B)
+
+---
+
+**PHASE 1B: Tenant Auth & Core (Weeks 8–14) — 40 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Tenant signup flow | Frontend | 1.5 weeks | Phase 0 | 🔴 |
+| Email verification | Backend | 1 week | Phase 0 | 🔴 |
+| JWT authentication | Backend | 1 week | Phase 0 | 🔴 |
+| 2FA (SMS) | Backend | 1 week | SNS setup | 🔴 |
+| Tenant dashboard | Frontend | 1.5 weeks | Auth + Phase 1A | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ New tenant can sign up → email verified → authenticated
+- ✅ 2FA working via SMS
+- ✅ JWT tokens valid for 7 days
+- ⏸️ **BLOCKER FOR:** L1 scanning to have authenticated users
+
+---
+
+**PHASE 2A: Scanning Engine L1 (Weeks 12–16) — 50 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| L1 network recon (15 checks) | Backend | 2 weeks | Phase 1B auth | 🔴 |
+| L1 domain enumeration | Backend | 1.5 weeks | Phase 1B auth | 🔴 |
+| SQS async orchestration | Backend | 1 week | Phase 0 | 🔴 |
+| S3 result storage | Backend | 3 days | Phase 0 | 🔴 |
+| Scan status polling | Frontend+Backend | 1 week | SQS + S3 | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Tenant triggers scan → receives status within 3 min
+- ✅ 15 L1 checks running in parallel (Lambda)
+- ✅ Results persisted in S3
+- ✅ API `/scans` endpoints working
+
+---
+
+**PHASE 2B: AI Intelligence Layer (Weeks 17–22) — 60 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Claude Sonnet integration | Backend | 1.5 weeks | Phase 2A scans | 🔴 |
+| Financial risk translation | Backend | 2 weeks | Claude integration | 🔴 |
+| Report generation (Markdown) | Backend | 1 week | Risk translation | 🔴 |
+| Prompt caching (90% cost reduction) | Backend | 1 week | Claude integration | 🔴 |
+| Insights API | Backend | 1 week | Report generation | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Each L1 finding includes financial risk
+- ✅ Markdown report generated automatically
+- ✅ Prompt caching reducing costs by 90%
+- ✅ Report visible in tenant dashboard
+
+---
+
+**PHASE 3: Scanning Layers 2–8 (Weeks 20–28) — 90 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| L2 Web app scanning | Backend | 2 weeks | L1 working | 🔴 |
+| L3 API security | Backend | 2 weeks | L1 working | 🔴 |
+| L4 Cloud infra (AWS) | Backend | 2 weeks | L1 working | 🔴 |
+| L5 Email security | Backend | 1.5 weeks | L1 working | 🔴 |
+| L6 Infrastructure (cert, DNS) | Backend | 1.5 weeks | L1 working | 🔴 |
+| L7 Compliance (PCI, HIPAA, SOC2) | Backend | 1.5 weeks | L1 working | 🔴 |
+| L8 Malware + threat intel | Backend | 1.5 weeks | L1 working | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ All 8 layers operational
+- ✅ Dashboard shows all 8 layer results
+- ✅ 100+ total checks across all layers
+- ✅ Parallel execution in Lambda farms
+
+---
+
+**PHASE 4: SOAR & Automation (Weeks 26–32) — 70 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| SOAR playbook engine | Backend | 2 weeks | L1–L8 complete | 🔴 |
+| Claude Opus integration (triage) | Backend | 1.5 weeks | Claude setup | 🔴 |
+| Automation workflows | Backend | 2 weeks | Playbook engine | 🔴 |
+| Slack/Teams integration | Backend | 1.5 weeks | Playbooks | 🔴 |
+| Alert routing UI | Frontend | 2 weeks | Automation complete | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Critical alerts auto-triaged by Claude
+- ✅ Playbooks execute (e.g., disable IAM user, revoke cert)
+- ✅ Slack notifications with action buttons
+- ✅ <60 second alert-to-action time
+
+---
+
+**PHASE 5: Monetization (Weeks 30–38) — 80 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Stripe integration | Backend | 2 weeks | Tenant auth | 🔴 |
+| Subscription mgmt | Backend | 2 weeks | Stripe | 🔴 |
+| Usage metering | Backend | 1.5 weeks | SQS + metering DB | 🔴 |
+| Tier enforcement | Backend | 1.5 weeks | Feature gates | 🔴 |
+| Billing dashboard | Frontend | 2 weeks | Subscription mgmt | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ Free tier: 5 scans/month, 1 project
+- ✅ Pro tier ($99/mo): 100 scans/month, unlimited projects
+- ✅ Enterprise: custom pricing
+- ✅ Invoices generated, sent via email
+
+---
+
+**PHASE 6: Beta Launch (Weeks 39–42) — 30 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Load testing (1,000 concurrent) | DevOps | 1 week | Phase 5 complete | 🔴 |
+| Security audit | DevOps | 1 week | Code complete | 🔴 |
+| Performance optimization | Backend | 1 week | Load test results | 🔴 |
+| UI/UX polish | Frontend | 1 week | Feature complete | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ <2s dashboard load time
+- ✅ <500ms API response time
+- ✅ 0 CRITICAL vulnerabilities
+- ✅ 20 beta customers on-boarded
+
+---
+
+**PHASE 7: Public Launch (Weeks 43–46) — 25 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Production AWS setup | DevOps | 1 week | Staging prod-ready | 🔴 |
+| DNS migration | DevOps | 2 days | Prod AWS ready | 🔴 |
+| Monitoring activation | DevOps | 2 days | Prod setup | 🔴 |
+| Marketing launch | Product | 1 week | API live | 🔴 |
+| Support onboarding | Product | 1 week | Launch day | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ `api.socvault.io` live and responding
+- ✅ 99.5% uptime SLA active
+- ✅ First 10 paying customers live
+- ✅ $2,000 MRR (target)
+
+---
+
+**PHASE 8: Scale & Enterprise (Weeks 47–52) — 40 Story Points**
+
+| Component | Owner | Duration | Dependencies | Status |
+|-----------|-------|----------|--------------|--------|
+| Enterprise tier features | Backend+Frontend | 2 weeks | Public launch | 🔴 |
+| SOC2 compliance audit | DevOps | 2 weeks | Launch day | 🔴 |
+| Advanced RBAC | Backend | 1.5 weeks | Launch day | 🔴 |
+| White-label support | Backend+Frontend | 1.5 weeks | Compliance | 🔴 |
+
+**🎯 Success Criteria:**
+- ✅ SOC2 Type II certified
+- ✅ 99.9% uptime SLA for Enterprise
+- ✅ 50 paying customers
+- ✅ $15,000 MRR target
+
+---
+
+### 19.3 Critical Path Analysis
+
+**⚠️ CRITICAL PATH (determines project completion date):**
+
+```
+Phase 0 (3 weeks) 
+  ↓ BLOCKER
+Phase 1A (7 weeks) + Phase 1B (starts week 8)
+  ↓ BLOCKER for user features
+Phase 2A (5 weeks starting week 12) + Phase 2B (6 weeks starting week 17)
+  ↓
+Phase 3 (9 weeks starting week 20)
+  ↓
+Phase 4 (7 weeks starting week 26) + Phase 5 (9 weeks starting week 30)
+  ↓
+Phase 6 (4 weeks)
+  ↓
+Phase 7 (4 weeks) → PUBLIC LAUNCH
+  ↓
+Phase 8+ (ongoing)
+```
+
+**Timeline to Production:**
+- **Week 0–3:** Admin infrastructure (Phase 0)
+- **Week 4–10:** Admin core complete (Phase 1A)
+- **Week 11–14:** Tenant auth live (Phase 1B)
+- **Week 12–16:** L1 scanning live (Phase 2A)
+- **Week 17–22:** AI integration + reports (Phase 2B)
+- **Week 20–28:** Full 8-layer scanning (Phase 3)
+- **Week 26–32:** SOAR + automation (Phase 4)
+- **Week 30–38:** Payments working (Phase 5)
+- **Week 39–42:** Beta launch (Phase 6)
+- **Week 43–46:** 🎉 **PUBLIC LAUNCH** (Phase 7)
+- **Week 47–52:** Enterprise tier ready (Phase 8)
+
+**Total: 46 weeks to production launch, 52 weeks to enterprise-ready**
+
+---
+
+### 19.4 Team Allocation & Parallel Work
+
+**DevOps Engineer (2 FTE)** — Entire project duration:
+- Weeks 1–3: Phase 0 (infrastructure foundation)
+- Weeks 4–10: Maintain Phase 0, ops support Phase 1A
+- Weeks 11+: Scale infrastructure, add Phase 1B–Phase 7 features
+
+**Backend Engineer (2 FTE)** — Entire project duration:
+- Weeks 1–10: Phase 0 + Phase 1A APIs
+- Weeks 11–14: Phase 1B auth
+- Weeks 12–16: Phase 2A L1 scanning
+- Weeks 17–22: Phase 2B AI integration
+- Weeks 20–28: Phase 3 L2–L8 scanning
+- Weeks 26–32: Phase 4 SOAR
+- Weeks 30–38: Phase 5 payments
+
+**Frontend Engineer (2 FTE)** — Starts Week 4:
+- Weeks 4–10: Phase 1A admin UI
+- Weeks 8–14: Phase 1B tenant UI
+- Weeks 12+: Tenant dashboard, scanning results UI
+- Weeks 26+: SOAR alert management UI, billing dashboard
+
+**Product/QA (1 FTE)** — Entire project:
+- Weeks 1–46: Beta testing, feedback, documentation
+- Weeks 39–46: Launch preparation and execution
+
+**Total Team:** 4.5 FTE for 46 weeks to launch
+
+---
+
+### 19.5 Key Milestones Summary
+
+| Milestone | Week | Phase | Status | Success Criteria |
+|-----------|------|-------|--------|-----------------|
+| **M0.0** | 3 | Phase 0 | 🔴 | Admin infrastructure operational, CI/CD working |
+| **M1.0** | 10 | Phase 1A | 🔴 | Admin portal live, user auth working |
+| **M1.5** | 14 | Phase 1B | 🔴 | Tenant signup → auth → dashboard |
+| **M2.0** | 16 | Phase 2A | 🔴 | L1 scanning live, results in S3 |
+| **M2.5** | 22 | Phase 2B | 🔴 | Financial risk reports generated by Claude |
+| **M3.0** | 28 | Phase 3 | 🔴 | All 8 layers operational |
+| **M4.0** | 32 | Phase 4 | 🔴 | SOAR playbooks executing, alerts auto-triaged |
+| **M5.0** | 38 | Phase 5 | 🔴 | Stripe payments working, tiers enforced |
+| **M6.0** | 42 | Phase 6 | 🔴 | Beta with 20 customers, 99.5% uptime |
+| **M7.0** | 46 | Phase 7 | 🔴 | 🎉 **PUBLIC LAUNCH** — api.socvault.io live |
+| **M8.0** | 52 | Phase 8 | 🔴 | SOC2 certified, 99.9% SLA, enterprise tier |
+
+---
+
+### 19.6 Success Metrics by Phase
+
+| Phase | Key Metric | Target | Acceptance |
+|-------|-----------|--------|-----------|
+| **0** | Infrastructure ready | 100% | All AWS + CI/CD working |
+| **1A** | Admin portal QA | 100% | 0 CRITICAL bugs |
+| **1B** | Auth conversion | >80% | Email → verified users |
+| **2A** | L1 scan speed | <3 min | End-to-end performance |
+| **2B** | Financial risk accuracy | >90% | Validated against CVSS |
+| **3** | 8-layer completeness | 100% | All layers in dashboard |
+| **4** | Alert auto-response | >85% | SOAR playbooks execute |
+| **5** | Free-to-paid conversion | >10% | Signup → payment |
+| **6** | Beta stability | 99.5% uptime | Rolling 30 days |
+| **7** | Launch success | $2,000 MRR | 10 paying customers |
+| **8** | Enterprise adoption | $15,000 MRR | 50 customers |
 
 ---
 
