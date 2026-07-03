@@ -1,5 +1,9 @@
 # 🚀 Quick Start: Set Up SOCVault Roadmap in GitHub Projects
 
+> **⚠️ Deprecated for execution tracking (July 2026)**  
+> Implementation work is tracked in **[socvault-io/socvault-app](https://github.com/socvault-io/socvault-app)** on the org project **[SOCVault App — Build](https://github.com/orgs/socvault-io/projects/1)**.  
+> This guide remains as historical reference for the original Blueprint-board setup. See [`socvault-app/docs/GITHUB_PROJECTS.md`](https://github.com/socvault-io/socvault-app/blob/main/docs/GITHUB_PROJECTS.md).
+
 **Complete roadmap with 11 milestones (M0.0–M8.0) covering 46 weeks from admin infrastructure to public launch**
 
 ---

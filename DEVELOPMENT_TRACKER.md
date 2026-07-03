@@ -3,12 +3,15 @@
 
 | Field | Value |
 |---|---|
-| **Last updated** | 2026-06-18 |
+| **Last updated** | 2026-07-03 |
 | **Current phase** | Phase 0 — AWS account + CI/CD (blueprint complete; not provisioned) |
 | **Development model** | **AWS-only** — **staging = MVP**; production dormant; serverless + IaC (ADR-006) |
 | **Next recommended action** | `0.1.1` Create AWS account → Terraform staging → `US-001` |
-| **Application repo** | Not created yet (`socvault-app` TBD) |
+| **Application repo** | [`socvault-io/socvault-app`](https://github.com/socvault-io/socvault-app) |
+| **GitHub Project** | [SOCVault App — Build](https://github.com/orgs/socvault-io/projects/1) (issues live in app repo) |
 | **AWS region** | `eu-west-2` (single account) |
+
+> **Note:** This file remains for blueprint history. **Live execution tracking** is in [`socvault-app/DEVELOPMENT_TRACKER.md`](https://github.com/socvault-io/socvault-app/blob/main/DEVELOPMENT_TRACKER.md).
 
 > **Rule:** Every completed task, deployment, config change, or doc update **must** add a row to the [Action Log](#action-log). Update [Stack Live Status](#stack-live-status) and the relevant checklist in the same commit/PR.
 
@@ -72,7 +75,7 @@ Snapshot of what is **actually running** right now (not planned).
 | AWS setup guide | 🟢 | `docs/AWS_SETUP_README.md` |
 | API Explorer impl guide | 🟢 | `docs/18_API_EXPLORER_IMPLEMENTATION.md` |
 | Automated QA scripts | 🟢 | `tests/qa/` |
-| Application source code | 🔴 | Separate repo `socvault-app` TBD |
+| Application source code | 🔴 | [`socvault-io/socvault-app`](https://github.com/socvault-io/socvault-app) — repo created; code not started |
 
 ---
 

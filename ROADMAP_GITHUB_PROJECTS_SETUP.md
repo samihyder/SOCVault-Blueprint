@@ -1,5 +1,9 @@
 # SOCVault GitHub Projects Setup Guide
 
+> **⚠️ Deprecated for execution tracking (July 2026)**  
+> Use **[socvault-io/socvault-app](https://github.com/socvault-io/socvault-app)** + **[SOCVault App — Build](https://github.com/orgs/socvault-io/projects/1)** instead.  
+> Setup guide: [`socvault-app/docs/GITHUB_PROJECTS.md`](https://github.com/socvault-io/socvault-app/blob/main/docs/GITHUB_PROJECTS.md).
+
 **Complete setup for GitHub Projects v2 board to track roadmap across all 9 phases**
 
 ---
